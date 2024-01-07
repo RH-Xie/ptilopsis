@@ -1,0 +1,15 @@
+# ignore all files and directory
+/*
+# but except .gitignore and nonebot folders
+!/.gitignore
+!nonebot*/
+!YetAnotherPicSearch/
+!haruka_bot/
+# but none of pictures, fonts or RECORD files are allowed
+/**/*.png
+/**/*.jpg
+/**/*.ttf
+/**/RECORD
+# or any __pycache__ folder
+/**/__pycache__/
+/*dist-info*/
