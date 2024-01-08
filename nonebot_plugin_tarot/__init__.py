@@ -5,6 +5,7 @@ from nonebot.matcher import Matcher
 from nonebot.permission import SUPERUSER
 from nonebot.plugin import PluginMetadata
 from nonebot import logger
+from nonebot_plugin_alconna import UniMessage, on_alconna
 
 from .data_source import tarot_manager
 
@@ -40,20 +41,17 @@ async def general_divine(bot: Bot, matcher: Matcher, event: MessageEvent):
 
     await tarot_manager.divine(bot, matcher, event)
 
+tarot = on_alconna("tarot")
 
 @tarot.handle()
 async def _(matcher: Matcher, event: MessageEvent):
     arg: str = event.get_plaintext()
 
     if "帮助" in arg[-2:]:
-        logger.warning("进入了帮助分支")
         await matcher.finish(__tarot_usages__)
-    logger.warning("进入了发送分支")
 
     desc, pic = await tarot_manager.onetime_divine()
-    logger.warning(desc)
-    logger.warning(pic != None)
-    if pic != None: await matcher.send(pic)
+    if pic != None: await UniMessage.image.send(pic)
     await matcher.finish(desc)
 
 
