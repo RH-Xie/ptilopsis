@@ -95,7 +95,7 @@ class MessageSegment(BaseMessageSegment["Message"]):
         elif path:
             data = {"src": Path(path).as_uri()}
         elif raw:
-            bd = raw["data"] if isinstance(raw["data"], bytes) else raw["data"].getvalue()  # type: ignore
+            bd = raw["data"] if isinstance(raw["data"], bytes) else raw["data"]  # type: ignore
             data = {"src": f"data:{raw['mime']};base64,{b64encode(bd).decode()}"}
         else:
             raise ValueError("image need at least one of url, path and raw")
