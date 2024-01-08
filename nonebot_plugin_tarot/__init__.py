@@ -52,6 +52,7 @@ async def _(matcher: Matcher, event: MessageEvent):
 
     desc, pic = await tarot_manager.onetime_divine()
     logger.warning(desc)
+    logger.warning(pic != None)
     if pic != None: await matcher.send(pic)
     await matcher.finish(desc)
 
