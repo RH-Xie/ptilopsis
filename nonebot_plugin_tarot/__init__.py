@@ -57,7 +57,7 @@ async def _(matcher: Matcher, event: MessageEvent):
 
 
 @chain_reply_switch.handle()
-async def _(event: GroupMessageEvent):
+async def _(event: PublicMessageEvent):
     arg: str = event.get_plaintext()
 
     if arg[:2] == "开启" or arg[:2] == "启用":
