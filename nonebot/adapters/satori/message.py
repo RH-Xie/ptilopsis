@@ -7,6 +7,7 @@ from typing import Any, List, Type, Union, Iterable, Optional, TypedDict
 
 from nonebot.adapters import Message as BaseMessage
 from nonebot.adapters import MessageSegment as BaseMessageSegment
+from nonebot import logger
 
 from .utils import Element, parse, escape
 
@@ -86,6 +87,9 @@ class MessageSegment(BaseMessageSegment["Message"]):
         cache: Optional[bool] = None,
         timeout: Optional[str] = None,
     ) -> "Image":
+        logger.log("类型是否为bytes?")
+        logger.log(isinstance(raw["data"], bytes))
+        
         if url:
             data = {"src": url}
         elif path:
@@ -99,6 +103,7 @@ class MessageSegment(BaseMessageSegment["Message"]):
             data["cache"] = cache  # type: ignore
         if timeout is not None:
             data["timeout"] = timeout
+        logger.log(data)
         return Image("img", data, extra=extra)  # type: ignore
 
     @staticmethod
