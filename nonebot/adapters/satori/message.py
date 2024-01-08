@@ -87,8 +87,8 @@ class MessageSegment(BaseMessageSegment["Message"]):
         cache: Optional[bool] = None,
         timeout: Optional[str] = None,
     ) -> "Image":
-        logger.log("类型是否为bytes?")
-        logger.log(isinstance(raw["data"], bytes))
+        logger.warning("类型是否为bytes?")
+        logger.warning(isinstance(raw["data"], bytes))
         
         if url:
             data = {"src": url}
@@ -103,7 +103,7 @@ class MessageSegment(BaseMessageSegment["Message"]):
             data["cache"] = cache  # type: ignore
         if timeout is not None:
             data["timeout"] = timeout
-        logger.log(data)
+        logger.warning(data)
         return Image("img", data, extra=extra)  # type: ignore
 
     @staticmethod
