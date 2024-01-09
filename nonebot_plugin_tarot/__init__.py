@@ -41,8 +41,6 @@ async def general_divine(bot: Bot, matcher: Matcher, event: MessageEvent):
 
     await tarot_manager.divine(bot, matcher, event)
 
-tarot = on_alconna("tarot")
-
 @tarot.handle()
 async def _(bot: Bot, event: MessageEvent):
     arg: str = event.get_plaintext()
