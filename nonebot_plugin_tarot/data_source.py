@@ -4,10 +4,8 @@ from io import BytesIO
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
-from nonebot.adapters.satori import Bot
-from nonebot.adapters.satori.message import MessageSegment
-from nonebot.adapters.satori.event import (PublicMessageEvent, MessageEvent,
-                                               PrivateMessageEvent)
+from nonebot.adapters.red import (Bot, GroupMessageEvent, MessageEvent,
+                                               PrivateMessageEvent, MessageSegment)
 from nonebot.matcher import Matcher
 from PIL import Image
 
@@ -123,7 +121,7 @@ class Tarot:
                 else:
                     await matcher.finish(msg_header + msg_body)
 
-            elif isinstance(event, PublicMessageEvent):
+            elif isinstance(event, GroupMessageEvent):
                 if self.is_chain_reply:
                     chain = chain_reply(bot, chain, msg_header + msg_body)
                 else:

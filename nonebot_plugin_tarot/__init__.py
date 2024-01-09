@@ -1,6 +1,5 @@
 from nonebot import on_command, on_regex
-from nonebot.adapters.satori import Bot
-from nonebot.adapters.satori.event import PublicMessageEvent, MessageEvent
+from nonebot.adapters.red import Bot, GroupMessageEvent, MessageEvent
 from nonebot.matcher import Matcher
 from nonebot.permission import SUPERUSER
 from nonebot.plugin import PluginMetadata
@@ -54,7 +53,7 @@ async def _(bot: Bot, event: MessageEvent):
 
 
 @chain_reply_switch.handle()
-async def _(event: PublicMessageEvent):
+async def _(event: GroupMessageEvent):
     arg: str = event.get_plaintext()
 
     if arg[:2] == "开启" or arg[:2] == "启用":
