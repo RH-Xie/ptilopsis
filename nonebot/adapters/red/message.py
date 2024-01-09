@@ -11,6 +11,7 @@ from nonebot.internal.driver import Request
 
 from nonebot.adapters import Message as BaseMessage
 from nonebot.adapters import MessageSegment as BaseMessageSegment
+from nonebot import logger
 
 from .utils import log
 from .api.model import Element, UploadResponse
@@ -387,6 +388,8 @@ class Message(BaseMessage[MessageSegment]):
                 if TYPE_CHECKING:
                     assert isinstance(seg, MediaMessageSegment)
                 resp = await seg.upload(bot)
+                logger.warning("图床响应")
+                logger.warning(resp)
                 file = Path(resp.ntFilePath)
                 res.append(
                     {
@@ -394,7 +397,7 @@ class Message(BaseMessage[MessageSegment]):
                         "picElement": {
                             "original": True,
                             "md5HexStr": resp.md5,
-                            "picWidth": resp.imageInfo and resp.imageInfo.width,
+                            "picWidth": resp.imageInfo and resp.imageInfo.width or seg.get(),
                             "picHeight": resp.imageInfo and resp.imageInfo.height,
                             "fileSize": resp.fileSize,
                             "fileName": file.name,
