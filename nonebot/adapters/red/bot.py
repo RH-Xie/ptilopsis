@@ -239,6 +239,9 @@ class Bot(BaseBot):
             )
         element_data = await message.export(self)
         logger.warning("self.call_api")
+        logger.warning(element_data)
+        logger.warning(chatType)
+        logger.warning(peerUin)
         resp = await self.call_api(
             "send_message",
             chat_type=chatType,
