@@ -27,7 +27,7 @@ add_sub_matcher.handle()(set_target_user_info)
 do_add_sub(add_sub_matcher)
 
 
-query_sub_matcher = on_command("查询订阅", rule=configurable_to_me, priority=5, block=True)
+query_sub_matcher = on_command("查询订阅", '''rule=configurable_to_me''', priority=5, block=True)
 query_sub_matcher.handle()(set_target_user_info)
 do_query_sub(query_sub_matcher)
 
