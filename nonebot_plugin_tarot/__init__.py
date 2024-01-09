@@ -48,7 +48,7 @@ async def _(bot: Bot, event: MessageEvent):
         await bot.send(event, __tarot_usages__)
 
     desc, pic = await tarot_manager.onetime_divine()
-    if pic != None: await bot.send(event, pic)
+    if pic != None: await bot.send(event, "这是一张塔罗牌")
     await bot.send(event, desc)
 
 
