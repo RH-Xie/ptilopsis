@@ -5,7 +5,7 @@ from collections import defaultdict
 import nonebot
 from nonebot.adapters import Bot
 from nonebot_plugin_saa import PlatformTarget
-from nonebot.adapters.onebot.v11 import Bot as Ob11Bot
+from nonebot.adapters.red import Bot as Ob11Bot
 
 GROUP: dict[int, list[Bot]] = {}
 USER: dict[int, list[Bot]] = {}

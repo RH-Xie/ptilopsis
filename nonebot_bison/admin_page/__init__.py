@@ -6,8 +6,7 @@ from nonebot.log import logger
 from nonebot.rule import to_me
 from nonebot.typing import T_State
 from nonebot import get_driver, on_command
-from nonebot.adapters.onebot.v11 import Bot
-from nonebot.adapters.onebot.v11.event import PrivateMessageEvent
+from nonebot.adapters.red import Bot, PrivateMessageEvent
 
 from .api import router as api_router
 from ..plugin_config import plugin_config

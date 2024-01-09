@@ -2,7 +2,7 @@ from dataclasses import field, dataclass
 
 from nonebot.log import logger
 from nonebot.plugin import require
-from nonebot.adapters.onebot.v11 import MessageSegment
+from nonebot.adapters.red import MessageSegment
 from nonebot_plugin_saa import Text, Image, MessageSegmentFactory
 
 from .abstract_post import BasePost, AbstractPost

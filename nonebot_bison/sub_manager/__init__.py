@@ -8,8 +8,8 @@ from nonebot.rule import Rule, to_me
 from nonebot.permission import SUPERUSER
 from nonebot_plugin_saa import TargetQQGroup
 from nonebot.params import ArgStr, ArgPlainText
-from nonebot.adapters import Bot, MessageTemplate
-from nonebot.adapters.onebot.v11.event import PrivateMessageEvent
+from nonebot.adapters import MessageTemplate
+from nonebot.adapters.red import Bot, PrivateMessageEvent
 
 from .add_sub import do_add_sub
 from .del_sub import do_del_sub

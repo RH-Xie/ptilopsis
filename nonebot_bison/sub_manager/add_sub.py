@@ -63,7 +63,7 @@ def do_add_sub(add_sub: type[Matcher]):
                 url = "https://nonebot-bison.netlify.app/usage/#%E6%89%80%E6%94%AF%E6%8C%81%E5%B9%B3%E5%8F%B0%E7%9A%84-uid"
                 msg = Text(url)
                 with contextlib.suppress(ImportError):
-                    from nonebot.adapters.onebot.v11 import MessageSegment
+                    from nonebot.adapters.red import MessageSegment
 
                     title = "Bison所支持的平台UID"
                     content = "查询相关平台的uid格式或获取方式"
@@ -75,7 +75,7 @@ def do_add_sub(add_sub: type[Matcher]):
                 await msg.reject()
             platform = platform_manager[state["platform"]]
             with contextlib.suppress(ImportError):
-                from nonebot.adapters.onebot.v11 import Message
+                from nonebot.adapters.red import Message
                 from nonebot.adapters.onebot.v11.utils import unescape
 
                 if isinstance(raw_id, Message):
