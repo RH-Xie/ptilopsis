@@ -241,7 +241,7 @@ class Tarot:
         buf = BytesIO()
         img.save(buf, format='png')
 
-        return True, MessageSegment.image(img), msg
+        return True, MessageSegment.image(img.tobitmap()), msg
 
 
 tarot_manager = Tarot()
