@@ -45,11 +45,11 @@ async def _(bot: Bot, event: MessageEvent):
     arg: str = event.get_plaintext()
 
     if "帮助" in arg[-2:]:
-        await bot.send(__tarot_usages__)
+        await bot.send(event, __tarot_usages__)
 
     desc, pic = await tarot_manager.onetime_divine()
-    if pic != None: await bot.send(pic)
-    await bot.send(desc)
+    if pic != None: await bot.send(event, pic)
+    await bot.send(event, desc)
 
 
 @chain_reply_switch.handle()
