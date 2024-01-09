@@ -7,22 +7,18 @@ from typing import List, Union, Literal, cast
 import anyio
 from nonebot.adapters import Event
 
-from ..utils import SupportedAdapters
 from ..types import Text, Image, Reply, Mention
-from ..abstract_factories import (
-    MessageFactory,
-    MessageSegmentFactory,
-    register_ms_adapter,
-    assamble_message_factory,
-)
-from ..registries import (
+from ..utils import (
     Receipt,
-    MessageId,
+    MessageFactory,
+    SupportedAdapters,
     TargetTelegramForum,
     TargetTelegramCommon,
+    MessageSegmentFactory,
     register_sender,
+    register_ms_adapter,
+    assamble_message_factory,
     register_target_extractor,
-    register_message_id_getter,
 )
 
 try:
@@ -42,10 +38,6 @@ try:
     register_telegram = partial(register_ms_adapter, adapter)
 
     MessageFactory.register_adapter_message(SupportedAdapters.telegram, Message)
-
-    class TelegramMessageId(MessageId):
-        adapter_name: Literal[adapter] = adapter
-        message_id: int
 
     @register_telegram(Text)
     def _text(t: Text) -> MessageSegment:
@@ -71,8 +63,7 @@ try:
 
     @register_telegram(Reply)
     async def _reply(r: Reply) -> MessageSegment:
-        assert isinstance(r.data, TelegramMessageId)
-        return MessageSegment("reply", {"message_id": str(r.data.message_id)})
+        return MessageSegment("reply", cast(dict, r.data))
 
     @register_target_extractor(PrivateMessageEvent)
     @register_target_extractor(GroupMessageEvent)
@@ -129,11 +120,6 @@ try:
         def raw(self):
             return self.messages
 
-    @register_message_id_getter(MessageEvent)
-    def _(event: Event):
-        assert isinstance(event, MessageEvent)
-        return TelegramMessageId(message_id=event.message_id)
-
     @register_sender(SupportedAdapters.telegram)
     async def send(
         bot,
@@ -155,7 +141,7 @@ try:
                     if isinstance(event, ChannelPostEvent)
                     else Mention(event.get_user_id())
                 ),
-                Reply(TelegramMessageId(message_id=event.message_id)),
+                Reply(event.message_id),
                 at_sender,
                 reply,
             )
@@ -166,8 +152,7 @@ try:
         message_to_send = Message()
         for message_segment_factory in full_msg:
             if isinstance(message_segment_factory, Reply):
-                assert isinstance(message_segment_factory.data, TelegramMessageId)
-                reply_to_message_id = message_segment_factory.data.message_id
+                reply_to_message_id = int(message_segment_factory.data["message_id"])
                 continue
 
             if (

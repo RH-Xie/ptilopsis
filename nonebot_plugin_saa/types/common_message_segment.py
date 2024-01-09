@@ -2,8 +2,7 @@ from io import BytesIO
 from pathlib import Path
 from typing import Union, TypedDict
 
-from ..registries import MessageId
-from ..abstract_factories import MessageFactory, MessageSegmentFactory
+from ..utils import MessageFactory, MessageSegmentFactory
 
 
 class TextData(TypedDict):
@@ -78,17 +77,21 @@ class Mention(MessageSegmentFactory):
         self.data = {"user_id": user_id}
 
 
+class ReplyData(TypedDict):
+    message_id: str
+
+
 class Reply(MessageSegmentFactory):
     """回复其他消息的消息段"""
 
-    data: MessageId
+    data: ReplyData
 
-    def __init__(self, message_id: MessageId):
+    def __init__(self, message_id: Union[str, int]):
         """回复其他消息的消息段
 
         参数:
-            message_id: 需要回复消息的 MessageId
+            message_id: 需要回复消息的 ID
         """
 
         super().__init__()
-        self.data = message_id
+        self.data = {"message_id": str(message_id)}

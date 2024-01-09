@@ -5,24 +5,20 @@ from nonebot.adapters import Event
 from nonebot.adapters import Bot as BaseBot
 
 from ..types import Text, Image, Reply, Mention
-from ..auto_select_bot import register_list_targets
-from ..utils import SupportedAdapters, SupportedPlatform
-from ..abstract_factories import (
-    MessageFactory,
-    MessageSegmentFactory,
-    register_ms_adapter,
-    assamble_message_factory,
-)
-from ..registries import (
+from ..utils.platform_send_target import TargetKaiheilaChannel, TargetKaiheilaPrivate
+from ..utils import (
     Receipt,
-    MessageId,
+    MessageFactory,
     PlatformTarget,
-    TargetKaiheilaChannel,
-    TargetKaiheilaPrivate,
+    SupportedAdapters,
+    SupportedPlatform,
+    MessageSegmentFactory,
     register_sender,
+    register_ms_adapter,
+    register_list_targets,
     register_convert_to_arg,
+    assamble_message_factory,
     register_target_extractor,
-    register_message_id_getter,
 )
 
 try:
@@ -62,10 +58,6 @@ try:
 
     MessageFactory.register_adapter_message(SupportedAdapters.kaiheila, Message)
 
-    class KaiheilaMessageId(MessageId):
-        adapter_name: Literal[adapter] = adapter
-        message_id: str
-
     @register_kaiheila(Text)
     def _text(t: Text) -> MessageSegment:
         return MessageSegment.text(t.data["text"])
@@ -84,8 +76,7 @@ try:
 
     @register_kaiheila(Reply)
     def _reply(r: Reply) -> MessageSegment:
-        assert isinstance(r.data, KaiheilaMessageId)
-        return MessageSegment.quote(r.data.message_id)
+        return MessageSegment.quote(r.data["message_id"])
 
     @register_target_extractor(PrivateMessageEvent)
     def _extract_private_msg_event(event: Event) -> TargetKaiheilaPrivate:
@@ -116,7 +107,6 @@ try:
         data: MessageCreateReturn
 
         async def revoke(self):
-            assert self.data.msg_id
             return await cast(Bot, self._get_bot()).message_delete(
                 msg_id=self.data.msg_id
             )
@@ -124,11 +114,6 @@ try:
         @property
         def raw(self) -> MessageCreateReturn:
             return self.data
-
-    @register_message_id_getter(MessageEvent)
-    def _(event: Event) -> KaiheilaMessageId:
-        assert isinstance(event, MessageEvent)
-        return KaiheilaMessageId(message_id=event.msg_id)
 
     @register_sender(SupportedAdapters.kaiheila)
     async def send(
@@ -147,7 +132,7 @@ try:
             full_msg = assamble_message_factory(
                 msg,
                 Mention(event.get_user_id()),
-                Reply(KaiheilaMessageId(message_id=event.msg_id)),
+                Reply(event.msg_id),
                 at_sender,
                 reply,
             )
