@@ -397,7 +397,7 @@ class Message(BaseMessage[MessageSegment]):
                         "picElement": {
                             "original": True,
                             "md5HexStr": resp.md5,
-                            "picWidth": resp.imageInfo and resp.imageInfo.width or seg.get(),
+                            "picWidth": resp.imageInfo and resp.imageInfo.width,
                             "picHeight": resp.imageInfo and resp.imageInfo.height,
                             "fileSize": resp.fileSize,
                             "fileName": file.name,
