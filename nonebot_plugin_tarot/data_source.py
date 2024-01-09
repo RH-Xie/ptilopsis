@@ -7,6 +7,7 @@ from typing import Dict, List, Tuple, Union
 from nonebot.adapters.red import (Bot, GroupMessageEvent, MessageEvent,
                                                PrivateMessageEvent, MessageSegment)
 from nonebot.matcher import Matcher
+from nonebot import logger
 from PIL import Image
 
 from .config import EventNotSupport, ResourceError, get_tarot, tarot_config
@@ -155,6 +156,7 @@ class Tarot:
         # 4. Return image and text
         if not flag:
             return desc, None
+        logger.warning("图片已转为二进制")
         return desc, pic
 
     def switch_chain_reply(self, new_state: bool) -> None:

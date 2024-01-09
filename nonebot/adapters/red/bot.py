@@ -3,7 +3,7 @@ import random
 from datetime import timedelta
 from typing_extensions import override
 from typing import Any, List, Tuple, Union, Optional
-
+from nonebot import logger
 from nonebot.message import handle_event
 
 from nonebot.adapters import Bot as BaseBot
@@ -226,7 +226,9 @@ class Bot(BaseBot):
             event: 收到的事件
             message: 发送的消息
         """
+        logger.warning("进入bot.send")
         chatType, peerUin = get_peer_data(event, **kwargs)
+        logger.warning("准备包装为Message")
         message = Message(message)
         if message.has("forward"):
             forward = message["forward", 0]
@@ -236,12 +238,14 @@ class Bot(BaseBot):
                 peerUin,
             )
         element_data = await message.export(self)
+        logger.warning("self.call_api")
         resp = await self.call_api(
             "send_message",
             chat_type=chatType,
             target=peerUin,
             elements=element_data,
         )
+        logger.warning("self.MessageModel.parse_obj")
         return MessageModel.parse_obj(resp)
 
     async def get_self_profile(self) -> Profile:

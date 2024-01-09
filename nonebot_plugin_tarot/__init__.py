@@ -48,9 +48,9 @@ async def _(bot: Bot, event: MessageEvent):
         await bot.send(event, __tarot_usages__)
 
     desc, pic = await tarot_manager.onetime_divine()
-    logger.log("开始发送图片...")
+    logger.warning("开始发送图片...")
     if pic != None: await bot.send(event, pic)
-    logger.log("发送图片完成...")
+    logger.warning("发送图片完成...")
     await bot.send(event, desc)
 
 
