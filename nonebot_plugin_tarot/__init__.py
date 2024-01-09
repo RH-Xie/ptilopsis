@@ -44,15 +44,15 @@ async def general_divine(bot: Bot, matcher: Matcher, event: MessageEvent):
 tarot = on_alconna("tarot")
 
 @tarot.handle()
-async def _(matcher: Matcher, event: MessageEvent):
+async def _(bot: Bot, event: MessageEvent):
     arg: str = event.get_plaintext()
 
     if "帮助" in arg[-2:]:
-        await matcher.finish(__tarot_usages__)
+        await bot.send(__tarot_usages__)
 
     desc, pic = await tarot_manager.onetime_divine()
-    if pic != None: await matcher.send(pic)
-    await matcher.finish(desc)
+    if pic != None: await bot.send(pic)
+    await bot.send(desc)
 
 
 @chain_reply_switch.handle()
