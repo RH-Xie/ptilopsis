@@ -51,7 +51,7 @@ async def _(matcher: Matcher, event: MessageEvent):
         await matcher.finish(__tarot_usages__)
 
     desc, pic = await tarot_manager.onetime_divine()
-    # if pic != None: await UniMessage.image.send(pic)
+    if pic != None: await matcher.send(pic)
     await matcher.finish(desc)
 
 

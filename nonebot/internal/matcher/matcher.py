@@ -547,6 +547,10 @@ class Matcher(metaclass=MatcherMeta):
         bot = current_bot.get()
         event = current_event.get()
         state = current_matcher.get().state
+        logger.log("matcher的bot event 和 state")
+        logger.log(bot)
+        logger.log(event)
+        logger.log(state)
         if isinstance(message, MessageTemplate):
             _message = message.format(**state)
         else:
