@@ -1,6 +1,7 @@
 from nonebot.params import Arg
 from nonebot.matcher import Matcher
 from nonebot_plugin_saa import MessageFactory, PlatformTarget
+from nonebot import logger
 
 from ..config import config
 from ..types import Category
@@ -15,6 +16,8 @@ def do_query_sub(query_sub: type[Matcher]):
     @query_sub.handle()
     async def _(user_info: PlatformTarget = Arg("target_user_info")):
         sub_list = await config.list_subscribe(user_info)
+        logger.info('sub_list')
+        logger.info(sub_list)
         res = "订阅的帐号为：\n"
         for sub in sub_list:
             res += f"{sub.target.platform_name} {sub.target.target_name} {sub.target.target}"

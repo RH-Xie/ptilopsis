@@ -8,6 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy import func, delete, select
 from nonebot_plugin_saa import PlatformTarget
 from nonebot_plugin_datastore import create_session
+from nonebot import logger
 
 from ..types import Tag
 from ..types import Target as T_Target
@@ -75,6 +76,10 @@ class DBConfig:
 
     async def list_subscribe(self, user: PlatformTarget) -> Sequence[Subscribe]:
         async with create_session() as session:
+            logger.info('User.user_target')
+            logger.info(User.user_target)
+            logger.info(user.dict())
+            
             query_stmt = (
                 select(Subscribe)
                 .where(User.user_target == user.dict())
