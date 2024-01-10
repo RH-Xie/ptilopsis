@@ -440,7 +440,7 @@ class Group(BaseModel):
     hasModifyConfGroupFace: bool
     hasModifyConfGroupName: bool
     remarkName: str
-    avatarUrl: str
+    # avatarUrl: str
     hasMemo: bool
     groupShutupExpireTime: str
     personShutupExpireTime: str
