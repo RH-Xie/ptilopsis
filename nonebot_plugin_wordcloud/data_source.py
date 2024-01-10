@@ -13,7 +13,6 @@ import numpy as np
 from emoji import replace_emoji
 from PIL import Image
 from wordcloud import WordCloud
-from nonebot import logger
 
 from .config import global_config, plugin_config
 
@@ -91,15 +90,12 @@ def _get_wordcloud(messages: List[str], mask_key: str) -> Optional[bytes]:
     )
     wordcloud_options.setdefault("colormap", colormap)
     wordcloud_options.setdefault("mask", get_mask(mask_key))
-    # with contextlib.suppress(ValueError):
-    wordcloud = WordCloud(**wordcloud_options)
-    image = wordcloud.generate_from_frequencies(frequency).to_image()
-    logger.info("图片生成完成")
-    logger.info(image.size)
-    logger.info(image.size[0] * image.size[1] * (image.bits // 8))
-    image_bytes = BytesIO()
-    image.save(image_bytes, format="PNG")
-    return image_bytes.getvalue()
+    with contextlib.suppress(ValueError):
+        wordcloud = WordCloud(**wordcloud_options)
+        image = wordcloud.generate_from_frequencies(frequency).to_image()
+        image_bytes = BytesIO()
+        image.save(image_bytes, format="PNG")
+        return image_bytes.getvalue()
 
 
 async def get_wordcloud(messages: List[str], mask_key: str) -> Optional[bytes]:

@@ -15,7 +15,7 @@ import nonebot_plugin_alconna as alc
 import nonebot_plugin_saa as saa
 from arclet.alconna import ArparmaBehavior
 from arclet.alconna.arparma import Arparma
-from nonebot import get_driver, logger
+from nonebot import get_driver
 from nonebot.adapters import Bot, Event, Message
 from nonebot.params import Arg, Depends
 from nonebot.permission import SUPERUSER
@@ -240,17 +240,11 @@ async def handle_wordcloud(
         time_stop=stop,
         exclude_id1s=plugin_config.wordcloud_exclude_user_ids,
     )
-    image = await get_wordcloud(messages, mask_key)
-    # if not (image := await get_wordcloud(messages, mask_key)):
-        # await wordcloud_cmd.finish("没有足够的数据生成词云", at_sender=my.result)
-        # return  # pragma: no cover
 
-    logger.info(image)
-    logger.info(messages)
-    logger.info("messages")
-    logger.info(messages)
-    logger.info("mask_key")
-    logger.info(mask_key)
+    if not (image := await get_wordcloud(messages, mask_key)):
+        await wordcloud_cmd.finish("没有足够的数据生成词云", at_sender=my.result)
+        return  # pragma: no cover
+
     await saa.Image(image, "wordcloud.png").finish(at_sender=my.result)
 
 

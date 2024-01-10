@@ -53,7 +53,7 @@ async def bili_keyword(
             msg, vurl = await live_detail(url, session)
         elif "article" in url:
             msg, vurl = await article_detail(url, page, session)
-        elif "dynamic" in url:
+        elif "dynamic" in url or "opus" in url:
             msg, vurl = await dynamic_detail(url, session)
 
         # 避免多个机器人解析重复推送
