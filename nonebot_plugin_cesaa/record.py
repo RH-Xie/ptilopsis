@@ -1,5 +1,5 @@
 from typing import List, Optional, Sequence
-
+from nonebot import logger
 from nonebot.adapters import Message
 from nonebot_plugin_chatrecorder import MessageRecord, deserialize_message
 from nonebot_plugin_chatrecorder.record import filter_statement
@@ -193,6 +193,7 @@ async def get_messages_plain_text(
     whereclause = filter_statement(**kwargs)
     if target:
         whereclause.extend(target_to_filter_statement(target))
+    logger.info(MessageRecord.plain_text)
     statement = (
         select(MessageRecord.plain_text)
         .where(*whereclause)
