@@ -36,7 +36,7 @@ async def get_calendar() -> bytes:
             "https://api.j4u.ink/v1/store/other/proxy/remote/moyu.json"
         )
         if response.is_error:
-            raise ValueError(f"摸鱼日历获取失败，错误码：{response.status_code}")
+            raise ValueError(f"日历获取失败，错误码：{response.status_code}")
         content = response.json()
         image = await client.get(content["data"]["moyu_url"])
         return image.content
@@ -89,7 +89,7 @@ async def moyu(
     if cmdarg := args.extract_plain_text():
         if "状态" in cmdarg:
             push_state = scheduler.get_job(f"moyu_calendar_{event.group_id}")
-            moyu_state = "摸鱼日历状态：\n每日推送: " + ("已开启" if push_state else "已关闭")
+            moyu_state = "\n每日推送: " + ("已开启" if push_state else "已关闭")
             if push_state:
                 group_id_info = subscribe_list[str(event.group_id)]
                 moyu_state += (
@@ -103,9 +103,9 @@ async def moyu(
             del subscribe_list[str(event.group_id)]
             save_subscribe()
             scheduler.remove_job(f"moyu_calendar_{event.group_id}")
-            await matcher.finish("摸鱼日历推送已禁用")
+            await matcher.finish("已禁用")
         else:
-            await matcher.finish("摸鱼日历的参数不正确")
+            await matcher.finish("参数不正确")
     else:
         moyu_img = await get_calendar()
         await matcher.finish(MessageSegment.image(moyu_img))
@@ -118,13 +118,13 @@ async def handle_time(
     state.setdefault("max_times", 0)
     time = time_arg.extract_plain_text()
     if any(cancel in time for cancel in ["取消", "放弃", "退出"]):
-        await moyu_matcher.finish("已退出摸鱼日历推送时间设置")
+        await moyu_matcher.finish("已退出时间设置")
     match = re.search(r"(\d*)[:：](\d*)", time)
     if match and match[1] and match[2]:
         calendar_subscribe(str(event.group_id), match[1], match[2])
-        await moyu_matcher.finish(f"摸鱼日历的每日推送时间已设置为：{match[1]}:{match[2]}")
+        await moyu_matcher.finish(f"每日推送时间已设置为：{match[1]}:{match[2]}")
     else:
         state["max_times"] += 1
         if state["max_times"] >= 3:
-            await moyu_matcher.finish("你的错误次数过多，已退出摸鱼日历推送时间设置")
+            await moyu_matcher.finish("你的错误次数过多，已退出摸时间设置")
         await moyu_matcher.reject("设置时间失败，请输入正确的格式，格式为：小时:分钟")

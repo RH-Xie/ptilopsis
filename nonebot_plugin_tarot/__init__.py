@@ -3,8 +3,6 @@ from nonebot.adapters.red import Bot, GroupMessageEvent, MessageEvent
 from nonebot.matcher import Matcher
 from nonebot.permission import SUPERUSER
 from nonebot.plugin import PluginMetadata
-from nonebot import logger
-from nonebot_plugin_alconna import UniMessage, on_alconna
 
 from .data_source import tarot_manager
 

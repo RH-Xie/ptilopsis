@@ -94,15 +94,8 @@ async def ark_update_handle(bot: Bot, event: Event):
         write_log2file('warning', f"{e}, 更新卡池失败")
         logger.error(str(e) + "获取更新失败！")
         await ark_update_event.finish(\
-            Message(\
-                f'[CQ:at,qq={event.get_user_id()}]{str(e) + "获取更新失败！"}'\
-                )
-            )
-    await ark_update_event.finish(\
-        Message(\
-            f'[CQ:at,qq={event.get_user_id()}]{info}'\
-            )
-        )
+            Message("获取更新失败！"))
+    await ark_update_event.finish(Message(info))
 
 """手动更新卡池系列"""
 def manual_update_pool(pool_name:str, is_exclusive:bool):
@@ -148,16 +141,8 @@ async def ark_manual_update_handle(bot: Bot, event: Event):
     except Exception as e:
         write_log2file('warning', f"{e}, 添加卡池失败")
         logger.error(str(e) + "添加卡池失败！")
-        await ark_update_event.finish(\
-            Message(\
-                f'[CQ:at,qq={event.get_user_id()}]{str(e) + "添加卡池失败！"}'\
-                )
-            )
-    await ark_update_event.finish(\
-        Message(\
-            f'[CQ:at,qq={event.get_user_id()}]{"添加卡池成功！"}'\
-            )
-        )   
+        await ark_update_event.finish(Message(str(e) + "添加卡池失败！"))
+    await ark_update_event.finish(Message("添加卡池成功！"))
 
 """
 为避免限定类型出错，添加数据库卡池信息重置功能
@@ -177,8 +162,4 @@ async def ark_db_rewrite_handle(bot: Bot, event: Event):
             rewrite_db(arkgacha_db, pool_info)
     except:
         pass
-    await ark_update_event.finish(\
-    Message(\
-        f'[CQ:at,qq={event.get_user_id()}]{"数据库刷新成功！"}'\
-        )
-    )   
+    await ark_update_event.finish(Message("数据库刷新成功！"))   

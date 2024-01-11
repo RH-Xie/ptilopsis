@@ -1,7 +1,9 @@
 from nonebot.log import logger
 from nonebot.plugin import on_keyword
 from nonebot.adapters.red.event import Event
-from nonebot.adapters.red import Bot, Message, MessageSegment
+
+from nonebot.adapters.red import Bot, MessageSegment
+from pathlib import Path
 from .ark_setting import *
 import random as rd, os
 
@@ -10,9 +12,8 @@ random_operator_event = on_keyword(['随机干员', "方舟随机干员"],priori
 async def random_operator_handle(bot: Bot, event: Event):
     operator_profile_path = "file:///" + operator_profile_dir + "/" + rd.choice(os.listdir(operator_profile_dir))
     logger.success(operator_profile_path)
-    message_CQ = Message(f'[CQ:at,qq={event.get_user_id()}]')
-    message_img = MessageSegment.image(operator_profile_path),
-    msg = message_CQ + message_img
+    message_img = MessageSegment.image(Path(operator_profile_path)),
+    msg = message_img
     await random_operator_event.send(
         msg
         )
