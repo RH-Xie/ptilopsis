@@ -98,18 +98,17 @@ async def user_analysis_handle(bot: Bot, event: Event):
             await user_analysis_event.send(Message(warning_info))
         img_path = next(ana_gnrt)
 
-        image_file_path = "file:///" + img_path
-        message_img = MessageSegment.image(Path(image_file_path)),
+        image_file_path = img_path
+        message_img = MessageSegment.image(Path(img_path)),
     except Exception as e:
         logger.warning(str(e))#这个warning会蜜汁报错 还没解决这个问题
         await user_analysis_event.finish(Message(str(e)))
-    await user_analysis_event.finish(message_CQ + message_img)
+    await user_analysis_event.finish(message_img)
 
 
 ark_help_event = on_keyword(['方舟抽卡帮助','方舟寻访帮助'], priority = 50)
 @ark_help_event.handle()
 async def ark_help_handle(bot: Bot, event: Event):
-    image_file_path = "file:///" + help_img_path
     # logger.info(image_file_path)
     message_CQ = Message(
         f'\n欢迎使用明日方舟寻访分析插件！\
@@ -119,7 +118,7 @@ async def ark_help_handle(bot: Bot, event: Event):
                 \nB服token获取地址：https://web-api.hypergryph.com/account/info/ak-b\n'
     )
     try:
-        message_img = MessageSegment.image(Path(image_file_path)),
+        message_img = MessageSegment.image(Path(help_img_path)),
         msg = message_CQ + message_img
     except:
         msg = message_CQ + Message('获取抽卡帮助资源出错！')

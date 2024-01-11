@@ -63,8 +63,7 @@ def update_by_prts_profile_info(names):
             img_info = req.get(img_info_page).content
             img_soup = bs(img_info, 'lxml')
             img_div = img_soup.find('div', class_ = 'fullImageLink')
-            img_name = 'profile_' + img_soup.find('h1', class_ = 'firstHeading').string.split(' ')[1].strip()
-            img_page = 'https://prts.wiki/' + img_div.contents[0].attrs['href']
+            img_name = 'profile_' + img_soup.find('h1', class_ = 'firstHeading').find('span', class_= 'mw-page-title-main').string.split(' ')[1].strip()            img_page = 'https://prts.wiki/' + img_div.contents[0].attrs['href']
             img = req.get(img_page).content
             with open(operator_profile_dir +"/" + img_name, 'wb') as fp:
                 fp.write(img)
