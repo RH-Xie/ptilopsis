@@ -1,7 +1,8 @@
 from nonebot import on_command, require, get_bot, get_driver
 from nonebot.log import logger
 from nonebot.typing import T_State
-from nonebot.adapters.onebot.v11 import Bot, Event, MessageSegment
+from nonebot.adapters import Event
+from nonebot.adapters.red import Bot, MessageSegment
 
 from nonebot_plugin_htmlrender import html_to_pic
 

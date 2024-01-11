@@ -4,7 +4,7 @@ from pathlib import Path
 import httpx
 from nonebot import get_bot, get_driver, logger, on_command, require
 from nonebot.adapters import Message
-from nonebot.adapters.onebot.v11 import GroupMessageEvent, MessageSegment
+from nonebot.adapters.red import GroupMessageEvent, MessageSegment
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, CommandArg
 from nonebot.typing import T_State
