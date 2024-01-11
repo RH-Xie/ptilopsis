@@ -4,8 +4,8 @@ from .ark_setting import operator_profile_dir, tot_pool_info_file, get_tot_pool_
 from .ark_db import rewrite_db
 from nonebot.log import logger
 from nonebot.plugin import on_keyword, on_command
-from nonebot.adapters.onebot.v11 import Bot, Event, PrivateMessageEvent
-from nonebot.adapters.onebot.v11.message import Message, MessageSegment
+from nonebot.adapters.red.event import Event
+from nonebot.adapters.red import Message, MessageSegment
 from bs4 import BeautifulSoup as bs
 from collections import defaultdict as ddict
 

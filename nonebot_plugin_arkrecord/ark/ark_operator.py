@@ -1,7 +1,7 @@
 from nonebot.log import logger
 from nonebot.plugin import on_keyword
-from nonebot.adapters.onebot.v11 import Bot, Event
-from nonebot.adapters.onebot.v11.message import Message, MessageSegment
+from nonebot.adapters.red.event import Event
+from nonebot.adapters.red import Bot, Message, MessageSegment
 from .ark_setting import *
 import random as rd, os
 

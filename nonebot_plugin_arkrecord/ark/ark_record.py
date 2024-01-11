@@ -1,8 +1,8 @@
 
 from nonebot.log import logger
 from nonebot.plugin import on_keyword
-from nonebot.adapters.onebot.v11 import Bot, Event, PrivateMessageEvent, GroupMessageEvent
-from nonebot.adapters.onebot.v11.message import Message, MessageSegment
+from nonebot.adapters.red.event import Event
+from nonebot.adapters.red import Bot, PrivateMessageEvent, GroupMessageEvent, Message, MessageSegment
 from nonebot.typing import T_State
 
 from .ark_db import *
