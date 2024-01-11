@@ -1,10 +1,11 @@
 import requests
+from pathlib import Path
 from .config import Config
 from nonebot import require, on_command
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import json
 import nonebot
-from nonebot.adapters.red import Message, MessageEvent
+from nonebot.adapters.red import Message, MessageEvent, MessageSegment
 from nonebot.adapters.red.bot import Bot
 
 
@@ -41,8 +42,7 @@ async def suijitu():
         resp = remove_upprintable_chars(resp)
         retdata = json.loads(resp)
         lst = retdata['imageUrl']
-        pic_ti1 = f"今日60S读世界已送达\n[CQ:image,file={lst}]"
-        return pic_ti1
+        return [MessageSegment.text(f"今日60S读世界已送达\n"), MessageSegment.image(Path(lst))]
         
     except:
         url = "https://api.iyk0.com/60s"
@@ -51,8 +51,7 @@ async def suijitu():
         resp = remove_upprintable_chars(resp)
         retdata = json.loads(resp)
         lst = retdata['imageUrl']
-        pic_ti = f"今日60S读世界已送达\n[CQ:image,file={lst}]"
-        return pic_ti
+        return [MessageSegment.text(f"今日60S读世界已送达\n"), MessageSegment.image(Path(lst))]
 
 for index, time in enumerate(plugin_config.read_inform_time):
     nonebot.logger.info("id:{},time:{}".format(index, time))
