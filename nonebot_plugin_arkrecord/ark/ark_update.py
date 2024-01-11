@@ -5,7 +5,7 @@ from .ark_db import rewrite_db
 from nonebot.log import logger
 from nonebot.plugin import on_keyword, on_command
 from nonebot.adapters.red.event import Event
-from nonebot.adapters.red import Message, MessageSegment
+from nonebot.adapters.red import Bot, Message
 from bs4 import BeautifulSoup as bs
 from collections import defaultdict as ddict
 
