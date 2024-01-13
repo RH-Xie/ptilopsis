@@ -81,6 +81,13 @@ async def b23_extract(text: str, session: ClientSession) -> str:
 
 def extract(text: str) -> Tuple[str, Optional[str], Optional[str]]:
     try:
+        isJson = re.compile(r"width\d+", re.I).search(text)
+        if isJson: 
+            logger.info("这是一张图片的JSON，解析取消")
+            return "", None, None
+    except:
+        return "", None, None
+    try:
         url = ""
         # 视频分p
         page = re.compile(r"([?&]|&amp;)p=\d+").search(text)
