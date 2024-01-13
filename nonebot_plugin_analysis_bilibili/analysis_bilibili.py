@@ -82,6 +82,8 @@ async def b23_extract(text: str, session: ClientSession) -> str:
 def extract(text: str) -> Tuple[str, Optional[str], Optional[str]]:
     try:
         isJson = re.compile(r"width\d+", re.I).search(text)
+        logger.info("是JSON吗？")
+        logger.info(isJson)
         if isJson: 
             logger.info("这是一张图片的JSON，解析取消")
             return "", None, None
