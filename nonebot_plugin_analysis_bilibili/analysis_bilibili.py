@@ -95,7 +95,10 @@ def extract(text: str) -> Tuple[str, Optional[str], Optional[str]]:
         # 番剧剧集ssid(season_id)
         ssid = re.compile(r"ss\d+", re.I).search(text)
         # 番剧详细页
+        logger.info("番剧解析")
+        logger.info(text)
         mdid = re.compile(r"md\d+", re.I).search(text)
+        logger.info(mdid)
         # 直播间
         room_id = re.compile(r"live.bilibili.com/(blanc/|h5/)?(\d+)", re.I).search(text)
         # 文章
