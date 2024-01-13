@@ -7,6 +7,7 @@ import json
 import nonebot
 from nonebot.adapters.red import Message, MessageEvent, MessageSegment
 from nonebot.adapters.red.bot import Bot
+from httpx import AsyncClient
 
 
 global_config = nonebot.get_driver().config
@@ -35,23 +36,27 @@ async def read60s():
 
 
 async def suijitu():
-    try:
-        url = "https://api.2xb.cn/zaob"  # 备用网址
-        resp = requests.get(url)
-        resp = resp.text
-        resp = remove_upprintable_chars(resp)
-        retdata = json.loads(resp)
-        lst = retdata['imageUrl']
-        return [MessageSegment.text(f"今日60S读世界已送达\n"), MessageSegment.image(Path(lst))]
-        
-    except:
-        url = "https://api.iyk0.com/60s"
-        resp = requests.get(url)
-        resp = resp.text
-        resp = remove_upprintable_chars(resp)
-        retdata = json.loads(resp)
-        lst = retdata['imageUrl']
-        return [MessageSegment.text(f"今日60S读世界已送达\n"), MessageSegment.image(Path(lst))]
+    async with AsyncClient() as client:
+        try:
+            url = "https://api.2xb.cn/zaob"  # 备用网址
+            resp = requests.get(url)
+            resp = resp.text
+            resp = remove_upprintable_chars(resp)
+            retdata = json.loads(resp)
+            imageUrl = retdata['imageUrl']
+            img = await client.get(imageUrl, timeout=8000)
+            return [MessageSegment.text(f"今日60S读世界已送达\n"), MessageSegment.image(img.content)]
+            
+        except:
+            return [MessageSegment.text("今日60S获取失败")]
+            # 这个API已经挂了
+            # url = "https://api.iyk0.com/60s"
+            # resp = requests.get(url)
+            # resp = resp.text
+            # resp = remove_upprintable_chars(resp)
+            # retdata = json.loads(resp)
+            # lst = retdata['imageUrl']
+            # return [MessageSegment.text(f"今日60S读世界已送达\n"), MessageSegment.image(Path(lst))]
 
 for index, time in enumerate(plugin_config.read_inform_time):
     nonebot.logger.info("id:{},time:{}".format(index, time))

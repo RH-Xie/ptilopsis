@@ -5,6 +5,7 @@ import nonebot
 from time import localtime, strftime
 from typing import Dict, List, Optional, Tuple, Union
 from aiohttp import ClientSession
+from nonebot import logger
 
 from .wbi import get_query
 
@@ -48,6 +49,8 @@ async def bili_keyword(
                 url, page=page, time_location=time_location, session=session
             )
         elif "bangumi" in url:
+            logger.info("进入番剧解析》")
+            logger.info(url)
             msg, vurl = await bangumi_detail(url, time_location, session)
         elif "xlive" in url:
             msg, vurl = await live_detail(url, session)

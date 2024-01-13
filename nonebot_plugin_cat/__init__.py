@@ -35,8 +35,6 @@ async def hf(bot: Bot, ev: Event):
         async with AsyncClient() as client:
             logger.info("START")
             img = await client.get("https://edgecats.net/", timeout=8000)
-            # data = resp.text.strip()
-            logger.info(img.content)
     except:
         return await bot.send(event=ev, message="获取猫猫图片超时")
     await bot.send(event=ev, message=MessageSegment.image(img.content))
@@ -44,25 +42,24 @@ async def hf(bot: Bot, ev: Event):
 @fox.handle()
 async def hf(bot: Bot, ev: Event):
     try:
-        # img = await AsyncHttpx().get("http://edgecats.net/")
         async with AsyncClient() as client:
             resp = await client.get("https://randomfox.ca/floof/")
             json = resp.json();
-            # data = resp.text.strip()
             logger.info(resp)
+            img = await client.get(json["image"], timeout=8000)
+
     except:
         return await bot.send(event=ev, message="获取狐狐图片超时")
-    await bot.send(event=ev, message=MessageSegment.image(json["image"]))
+    await bot.send(event=ev, message=MessageSegment.image(img.content))
 
 @husky.handle()
 async def hf(bot: Bot, ev: Event):
     try:
-        # img = await AsyncHttpx().get("http://edgecats.net/")
         async with AsyncClient() as client:
             resp = await client.get("https://dog.ceo/api/breed/husky/images/random")
             json = resp.json();
-            # data = resp.text.strip()
             logger.info(json)
+            img = await client.get(json["message"], timeout=8000)
     except:
         return await bot.send(event=ev, message="获取二哈图片超时")
-    await bot.send(event=ev, message=MessageSegment.image(json["message"]))
+    await bot.send(event=ev, message=MessageSegment.image(img.content))
