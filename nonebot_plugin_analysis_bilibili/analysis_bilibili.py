@@ -81,7 +81,7 @@ async def b23_extract(text: str, session: ClientSession) -> str:
 
 def extract(text: str) -> Tuple[str, Optional[str], Optional[str]]:
     try:
-        isJson = re.compile(r"width\d+", re.I).search(text)
+        isJson = re.compile(r"width", re.I).search(text)
         logger.info("是JSON吗？")
         logger.info(isJson)
         if isJson: 
