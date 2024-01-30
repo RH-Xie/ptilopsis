@@ -47,7 +47,8 @@ final_words_cmd = on_command("最终台词", priority=1)
 async def handle(user_info: UserInfo = EventUserInfo()):
     nickname = user_info.user_name if user_info.user_name else "你"
     final_word = random.choice(final_words)
-    reply = f"{nickname}的最终台词是：{final_word}" 
+    # reply = f"{nickname}的最终台词是：{final_word}" 
+    reply = final_word
 
     message_builder = MessageFactory([Text(reply)])
     await message_builder.send()
