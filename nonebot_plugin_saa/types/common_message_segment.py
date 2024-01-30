@@ -2,7 +2,8 @@ from io import BytesIO
 from pathlib import Path
 from typing import Union, TypedDict
 
-from ..utils import MessageFactory, MessageSegmentFactory
+from ..registries import MessageId
+from ..abstract_factories import MessageFactory, MessageSegmentFactory
 
 
 class TextData(TypedDict):
@@ -25,6 +26,9 @@ class Text(MessageSegmentFactory):
 
     def __str__(self) -> str:
         return self.data["text"]
+
+    def __len__(self) -> int:
+        return len(self.data["text"])
 
 
 MessageFactory.register_text_ms(lambda text: Text(text))
@@ -56,6 +60,37 @@ class Image(MessageSegmentFactory):
         super().__init__()
         self.data = {"image": image, "name": name}
 
+    def __str__(self) -> str:
+        image = self.data["image"]
+        format_template = "{0}={1}"
+        if isinstance(image, bytes):
+            image_str = format_template.format("image", f"<bytes {len(image)}>")
+        elif isinstance(image, BytesIO):
+            image_str = format_template.format(
+                "image", f"<BytesIO {len(image.getvalue())}>"
+            )
+        else:
+            image_str = format_template.format("image", repr(image))
+
+        kv_list = list(f"{k}={v!r}" for k, v in self.data.items() if k != "image")
+        kv_list.append(image_str)
+        return f"[SAA:{self.__class__.__name__}|{','.join(kv_list)}]"
+
+    def __repr__(self) -> str:
+        image = self.data["image"]
+        format_template = "{0}={1}"
+        if isinstance(image, bytes):
+            image_str = format_template.format("image", repr(image))
+        elif isinstance(image, BytesIO):
+            image_str = format_template.format(
+                "image", f"BytesIO({repr(image.getvalue())})"
+            )
+        else:
+            image_str = format_template.format("image", repr(image))
+        kv_list = list(f"{k}={v!r}" for k, v in self.data.items() if k != "image")
+        kv_list.append(image_str)
+        return f"{self.__class__.__name__}({', '.join(kv_list)})"
+
 
 class MentionData(TypedDict):
     user_id: str
@@ -78,7 +113,7 @@ class Mention(MessageSegmentFactory):
 
 
 class ReplyData(TypedDict):
-    message_id: str
+    message_id: MessageId
 
 
 class Reply(MessageSegmentFactory):
@@ -86,12 +121,11 @@ class Reply(MessageSegmentFactory):
 
     data: ReplyData
 
-    def __init__(self, message_id: Union[str, int]):
+    def __init__(self, message_id: MessageId):
         """回复其他消息的消息段
 
         参数:
-            message_id: 需要回复消息的 ID
+            message_id: 需要回复消息的 MessageId
         """
-
         super().__init__()
-        self.data = {"message_id": str(message_id)}
+        self.data = {"message_id": message_id}

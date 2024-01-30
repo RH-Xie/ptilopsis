@@ -1,24 +1,28 @@
+from warnings import warn
 from functools import partial
 from typing import List, Literal
 
 from nonebot.adapters import Event
 from nonebot.adapters import Bot as BaseBot
 
+from ..config import plugin_config
+from ..utils import SupportedAdapters
 from ..types import Text, Image, Reply, Mention
-from ..utils import (
-    Receipt,
+from ..auto_select_bot import register_list_targets
+from ..abstract_factories import (
     MessageFactory,
+    register_ms_adapter,
+    assamble_message_factory,
+)
+from ..registries import (
+    Receipt,
+    MessageId,
     PlatformTarget,
     QQGuildDMSManager,
-    SupportedAdapters,
     TargetQQGuildDirect,
     TargetQQGuildChannel,
-    MessageSegmentFactory,
     register_sender,
-    register_ms_adapter,
     register_qqguild_dms,
-    register_list_targets,
-    assamble_message_factory,
     register_target_extractor,
 )
 
@@ -39,6 +43,10 @@ try:
 
     MessageFactory.register_adapter_message(adapter, Message)
 
+    class QQGuildMessageId(MessageId):
+        adapter_name: Literal[adapter] = adapter
+        message_id: str
+
     @register_qqguild(Text)
     def _text(t: Text) -> MessageSegment:
         return MessageSegment.text(t.data["text"])
@@ -56,7 +64,8 @@ try:
 
     @register_qqguild(Reply)
     def _reply(r: Reply) -> MessageSegment:
-        return MessageSegment.reference(r.data["message_id"])
+        assert isinstance(mid := r.data["message_id"], QQGuildMessageId)
+        return MessageSegment.reference(mid.message_id)
 
     @register_target_extractor(MessageEvent)
     def extract_message_event(event: Event) -> PlatformTarget:
@@ -100,15 +109,23 @@ try:
         def raw(self):
             return self.sent_msg
 
+        def extract_message_id(self) -> QQGuildMessageId:
+            assert self.sent_msg.id
+            return QQGuildMessageId(message_id=self.sent_msg.id)
+
     @register_sender(SupportedAdapters.qqguild)
     async def send(
         bot,
-        msg: MessageFactory[MessageSegmentFactory],
+        msg: MessageFactory,
         target,
         event,
         at_sender: bool,
         reply: bool,
     ) -> QQGuildReceipt:
+        warn(
+            "QQGuild adapter is dedeprecated. Please use 'nonebot-adapter-qq' instead.",
+            DeprecationWarning,
+        )
         assert isinstance(bot, Bot)
         assert isinstance(target, (TargetQQGuildChannel, TargetQQGuildDirect))
 
@@ -118,7 +135,11 @@ try:
             assert event.author
             assert event.id
             full_msg = assamble_message_factory(
-                msg, Mention(str(event.author.id)), Reply(event.id), at_sender, reply
+                msg,
+                Mention(str(event.author.id)),
+                Reply(QQGuildMessageId(message_id=event.id)),
+                at_sender,
+                reply,
             )
 
         # parse Message
@@ -165,6 +186,11 @@ try:
                     message_reference=reference,  # type: ignore
                 )
         else:
+            msg_id = (
+                plugin_config.qqguild_magic_msg_id
+                if plugin_config.use_qqguild_magic_msg_id
+                else None
+            )
             if isinstance(target, TargetQQGuildChannel):
                 assert target.channel_id
                 sent_msg = await bot.post_messages(
@@ -176,6 +202,7 @@ try:
                     file_image=file_image,  # type: ignore
                     markdown=markdown,  # type: ignore
                     message_reference=reference,  # type: ignore
+                    msg_id=msg_id,
                 )
             else:
                 guild_id = await QQGuildDMSManager.aget_guild_id(target, bot)
@@ -188,6 +215,7 @@ try:
                     file_image=file_image,  # type: ignore
                     markdown=markdown,  # type: ignore
                     message_reference=reference,  # type: ignore
+                    msg_id=msg_id,
                 )
 
         return QQGuildReceipt(bot_id=bot.self_id, sent_msg=sent_msg)

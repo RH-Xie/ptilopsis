@@ -6,28 +6,32 @@ from typing import Any, Dict, Literal, cast
 from nonebot.adapters import Event
 from nonebot.adapters import Bot as BaseBot
 
+from ..utils import SupportedAdapters
 from ..types import Text, Image, Reply, Mention
-from ..utils.platform_send_target import TargetFeishuGroup, TargetFeishuPrivate
-from ..utils import (
-    Receipt,
+from ..abstract_factories import (
     MessageFactory,
-    SupportedAdapters,
-    MessageSegmentFactory,
-    register_sender,
     register_ms_adapter,
     assamble_message_factory,
+)
+from ..registries import (
+    Receipt,
+    MessageId,
+    TargetFeishuGroup,
+    TargetFeishuPrivate,
+    register_sender,
     register_target_extractor,
+    register_message_id_getter,
 )
 
 try:
     import httpx
+    from nonebot.adapters.feishu.message import At
     from nonebot.adapters.feishu import (
         Bot,
         Message,
         MessageEvent,
         MessageSegment,
         GroupMessageEvent,
-        MessageSerializer,
         PrivateMessageEvent,
     )
 
@@ -35,6 +39,10 @@ try:
     register_feishu = partial(register_ms_adapter, adapter)
 
     MessageFactory.register_adapter_message(adapter, Message)
+
+    class FeishuMessageId(MessageId):
+        adapter_name: Literal[adapter] = adapter
+        message_id: str
 
     @register_feishu(Text)
     def _text(t: Text) -> MessageSegment:
@@ -65,11 +73,12 @@ try:
 
     @register_feishu(Mention)
     def _mention(m: Mention) -> MessageSegment:
-        return MessageSegment.at(m.data["user_id"])
+        return At("at", {"user_id": m.data["user_id"]})
 
     @register_feishu(Reply)
     def _reply(r: Reply) -> MessageSegment:
-        return MessageSegment("reply", cast(dict, r.data))
+        assert isinstance(mid := r.data["message_id"], FeishuMessageId)
+        return MessageSegment("reply", {"message_id": mid.message_id})
 
     @register_target_extractor(PrivateMessageEvent)
     def _extract_private_msg_event(event: Event) -> TargetFeishuPrivate:
@@ -95,10 +104,18 @@ try:
         def raw(self) -> Any:
             return self.data
 
+        def extract_message_id(self) -> FeishuMessageId:
+            return FeishuMessageId(message_id=self.message_id)
+
+    @register_message_id_getter(MessageEvent)
+    def _(event: Event) -> FeishuMessageId:
+        assert isinstance(event, MessageEvent)
+        return FeishuMessageId(message_id=event.event.message.message_id)
+
     @register_sender(adapter)
     async def send(
         bot,
-        msg: MessageFactory[MessageSegmentFactory],
+        msg: MessageFactory,
         target,
         event,
         at_sender: bool,
@@ -116,7 +133,7 @@ try:
                     if isinstance(event, GroupMessageEvent)
                     else None
                 ),
-                Reply(event.event.message.message_id),
+                Reply(FeishuMessageId(message_id=event.event.message.message_id)),
                 at_sender,
                 reply,
             )
@@ -127,13 +144,16 @@ try:
         message_to_send = Message()
         for message_segment_factory in full_msg:
             if isinstance(message_segment_factory, Reply):
-                reply_to_message_id = message_segment_factory.data["message_id"]
+                assert isinstance(
+                    mid := message_segment_factory.data["message_id"], FeishuMessageId
+                )
+                reply_to_message_id = mid.message_id
                 continue
 
             message_segment = await message_segment_factory.build(bot)
             message_to_send += message_segment
 
-        msg_type, content = MessageSerializer(message_to_send).serialize()
+        msg_type, content = message_to_send.serialize()
 
         if reply_to_message_id is None:
             if isinstance(target, TargetFeishuGroup):

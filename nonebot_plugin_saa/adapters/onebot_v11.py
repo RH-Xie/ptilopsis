@@ -4,22 +4,24 @@ from typing import Any, Dict, List, Union, Literal, Optional, cast
 from nonebot.adapters import Bot, Event
 
 from ..types import Text, Image, Reply, Mention
-from ..utils import (
-    Receipt,
-    TargetQQGroup,
+from ..auto_select_bot import register_list_targets
+from ..utils import SupportedAdapters, SupportedPlatform
+from ..abstract_factories import (
     MessageFactory,
+    AggregatedMessageFactory,
+    register_ms_adapter,
+    assamble_message_factory,
+)
+from ..registries import (
+    Receipt,
+    MessageId,
+    TargetQQGroup,
     PlatformTarget,
     TargetQQPrivate,
-    SupportedAdapters,
-    SupportedPlatform,
-    MessageSegmentFactory,
-    AggregatedMessageFactory,
     register_sender,
-    register_ms_adapter,
-    register_list_targets,
     register_convert_to_arg,
-    assamble_message_factory,
     register_target_extractor,
+    register_message_id_getter,
 )
 
 try:
@@ -49,6 +51,11 @@ try:
 
     MessageFactory.register_adapter_message(SupportedAdapters.onebot_v11, Message)
 
+    class OB11MessageId(MessageId):
+        adapter_name: Literal[adapter] = adapter
+
+        message_id: int
+
     @register_onebot_v11(Text)
     def _text(t: Text) -> MessageSegment:
         return MessageSegment.text(t.data["text"])
@@ -63,7 +70,8 @@ try:
 
     @register_onebot_v11(Reply)
     async def _reply(r: Reply) -> MessageSegment:
-        return MessageSegment.reply(int(r.data["message_id"]))
+        assert isinstance(mid := r.data["message_id"], OB11MessageId)
+        return MessageSegment.reply(mid.message_id)
 
     @register_target_extractor(PrivateMessageEvent)
     def _extract_private_msg_event(event: Event) -> TargetQQPrivate:
@@ -127,6 +135,11 @@ try:
         else:
             return TargetQQPrivate(user_id=event.user_id)
 
+    @register_message_id_getter(MessageEvent)
+    def _(event: Event) -> OB11MessageId:
+        assert isinstance(event, MessageEvent)
+        return OB11MessageId(message_id=event.message_id)
+
     @register_convert_to_arg(adapter, SupportedPlatform.qq_private)
     def _gen_private(target: PlatformTarget) -> Dict[str, Any]:
         assert isinstance(target, TargetQQPrivate)
@@ -156,10 +169,13 @@ try:
         def raw(self) -> Any:
             return self.message_id
 
+        def extract_message_id(self) -> OB11MessageId:
+            return OB11MessageId(message_id=self.message_id)
+
     @register_sender(SupportedAdapters.onebot_v11)
     async def send(
         bot,
-        msg: MessageFactory[MessageSegmentFactory],
+        msg: MessageFactory,
         target,
         event,
         at_sender: bool,
@@ -172,7 +188,7 @@ try:
             full_msg = assamble_message_factory(
                 msg,
                 Mention(event.get_user_id()),
-                Reply(event.message_id),
+                Reply(OB11MessageId(message_id=event.message_id)),
                 at_sender,
                 reply,
             )
@@ -229,14 +245,22 @@ try:
         assert isinstance(bot, BotOB11)
 
         targets = []
-        groups = await bot.get_group_list()
+        try:
+            groups = await bot.get_group_list()
+        except Exception:
+            groups = []
+
         for group in groups:
             group_id = group["group_id"]
             target = TargetQQGroup(group_id=group_id)
             targets.append(target)
 
         # 获取好友列表
-        users = await bot.get_friend_list()
+        try:
+            users = await bot.get_friend_list()
+        except Exception:
+            users = []
+
         for user in users:
             user_id = user["user_id"]
             target = TargetQQPrivate(user_id=user_id)
