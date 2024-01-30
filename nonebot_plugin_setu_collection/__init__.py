@@ -75,12 +75,14 @@ async def _(bot: Bot, event: MessageEvent):
         if R18:
             await setu.finish("涩涩是禁止事项！！")
         else:
-            if not Tag or is_MirlKoi_tag(Tag):
-                api = "MirlKoi API"
-                setufunc = MirlKoi
-            else:
-                api = "Jitsu"
-                setufunc = Anosu
+            api = "Lolicon API"
+            setufunc = Lolicon
+            # if not Tag or is_MirlKoi_tag(Tag):
+            #     api = "MirlKoi API"
+            #     setufunc = MirlKoi
+            # else:
+            #     api = "Jitsu"
+            #     setufunc = Anosu
     else:
         api = customer_api.get(str(event.user_id),None)
         if api == "Lolicon API":
