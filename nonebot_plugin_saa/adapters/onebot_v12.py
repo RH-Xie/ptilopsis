@@ -7,28 +7,26 @@ from nonebot.adapters import Event
 from nonebot.adapters import Bot as BaseBot
 
 from ..types import Text, Image, Reply, Mention
-from ..auto_select_bot import register_list_targets
-from ..utils import SupportedAdapters, SupportedPlatform
-from ..abstract_factories import (
-    MessageFactory,
-    register_ms_adapter,
-    assamble_message_factory,
-)
-from ..registries import (
+from ..utils import (
     Receipt,
-    MessageId,
     TargetQQGroup,
+    MessageFactory,
     PlatformTarget,
     TargetQQPrivate,
     TargetOB12Unknow,
     QQGuildDMSManager,
+    SupportedAdapters,
+    SupportedPlatform,
     TargetQQGuildDirect,
     TargetQQGuildChannel,
+    MessageSegmentFactory,
     register_sender,
+    register_ms_adapter,
     register_qqguild_dms,
+    register_list_targets,
     register_convert_to_arg,
+    assamble_message_factory,
     register_target_extractor,
-    register_message_id_getter,
 )
 
 try:
@@ -58,10 +56,6 @@ try:
     register_onebot_v12 = partial(register_ms_adapter, adapter)
 
     MessageFactory.register_adapter_message(adapter, Message)
-
-    class OB12MessageId(MessageId):
-        adapter_name: Literal[adapter] = adapter
-        message_id: str
 
     @register_onebot_v12(Text)
     def _text(t: Text) -> MessageSegment:
@@ -96,8 +90,7 @@ try:
 
     @register_onebot_v12(Reply)
     async def _reply(r: Reply) -> MessageSegment:
-        assert isinstance(mid := r.data["message_id"], OB12MessageId)
-        return MessageSegment.reply(mid.message_id)
+        return MessageSegment.reply(r.data["message_id"])
 
     @register_target_extractor(PrivateMessageEvent)
     def _extract_private_msg_event(event: Event) -> PlatformTarget:
@@ -191,11 +184,6 @@ try:
             guild_id=event.guild_id,
         )
 
-    @register_message_id_getter(MessageEvent)
-    def _(event: Event) -> OB12MessageId:
-        assert isinstance(event, MessageEvent)
-        return OB12MessageId(message_id=event.message_id)
-
     @register_convert_to_arg(adapter, SupportedPlatform.qq_group)
     def _to_qq_group(target: PlatformTarget):
         assert isinstance(target, TargetQQGroup)
@@ -253,13 +241,10 @@ try:
         def raw(self):
             return self.message_id
 
-        def extract_message_id(self) -> OB12MessageId:
-            return OB12MessageId(message_id=self.message_id)
-
     @register_sender(SupportedAdapters.onebot_v12)
     async def send(
         bot,
-        msg: MessageFactory,
+        msg: MessageFactory[MessageSegmentFactory],
         target,
         event,
         at_sender: bool,
@@ -280,11 +265,7 @@ try:
         if event:
             assert isinstance(event, MessageEvent)
             full_msg = assamble_message_factory(
-                msg,
-                Mention(event.user_id),
-                Reply(OB12MessageId(message_id=event.message_id)),
-                at_sender,
-                reply,
+                msg, Mention(event.user_id), Reply(event.message_id), at_sender, reply
             )
         else:
             full_msg = msg

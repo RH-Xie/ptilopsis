@@ -4,13 +4,10 @@ from copy import deepcopy
 from warnings import warn
 from inspect import signature
 from typing_extensions import Self
-from dataclasses import field, asdict, dataclass
 from typing import (
-    Any,
     Dict,
     List,
     Type,
-    Tuple,
     Union,
     TypeVar,
     Callable,
@@ -19,23 +16,19 @@ from typing import (
     NoReturn,
     Optional,
     Awaitable,
-    SupportsIndex,
     cast,
-    overload,
 )
 
 from nonebot.adapters import Bot, Event, Message, MessageSegment
 from nonebot.matcher import current_bot, current_event, current_matcher
 from nonebot.exception import PausedException, FinishedException, RejectedException
 
+from .receipt import Receipt
 from .auto_select_bot import get_bot
-from .registries import Receipt, PlatformTarget, sender_map, extract_target
-from .utils import (
-    FallbackToDefault,
-    SupportedAdapters,
-    AdapterNotInstalled,
-    extract_adapter_type,
-)
+from .const import SupportedAdapters
+from .helpers import extract_adapter_type
+from .exceptions import FallbackToDefault, AdapterNotInstalled
+from .platform_send_target import PlatformTarget, sender_map, extract_target
 
 TMSF = TypeVar("TMSF", bound="MessageSegmentFactory")
 TMF = TypeVar("TMF", bound="MessageFactory")
@@ -99,7 +92,6 @@ async def do_build_custom(builder: CustomBuildFunc, bot: Bot) -> MessageSegment:
     return cast(MessageSegment, res)
 
 
-@dataclass
 class MessageSegmentFactory(ABC):
     _builders: ClassVar[
         Dict[
@@ -111,10 +103,8 @@ class MessageSegmentFactory(ABC):
         ]
     ]
 
-    data: Dict[str, Any] = field(default_factory=dict)
-    _custom_builders: Dict[SupportedAdapters, CustomBuildFunc] = field(
-        init=False, default_factory=dict
-    )
+    data: dict
+    _custom_builders: Dict[SupportedAdapters, CustomBuildFunc]
 
     def _register_custom_builder(
         self,
@@ -139,23 +129,8 @@ class MessageSegmentFactory(ABC):
         cls._builders = {}
         return super().__init_subclass__()
 
-    def __str__(self) -> str:
-        kwstr = ",".join(f"{k}={v!r}" for k, v in self.data.items())
-        return f"[SAA:{self.__class__.__name__}|{kwstr}]"
-
-    def __repr__(self) -> str:
-        kwrepr = ", ".join(f"{k}={v!r}" for k, v in self.data.items())
-        return f"{self.__class__.__name__}({kwrepr})"
-
-    def __len__(self) -> int:
-        return len(self.data)
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, MessageSegmentFactory):
-            return self.data == other.data
-        elif isinstance(other, str):
-            return self.data == {"text": other}
-        return False
+    def __eq__(self, other: Self) -> bool:
+        return self.data == other.data
 
     def overwrite(
         self,
@@ -174,16 +149,10 @@ class MessageSegmentFactory(ABC):
             return await do_build(self, builder, bot)
         raise AdapterNotInstalled(adapter_name)
 
-    def __add__(
-        self,
-        other: "str | MessageSegmentFactory | Iterable[str | MessageSegmentFactory]",
-    ) -> "MessageFactory":
+    def __add__(self: TMSF, other: Union[str, TMSF, Iterable[TMSF]]):
         return MessageFactory(self) + other
 
-    def __radd__(
-        self,
-        other: "str | MessageSegmentFactory | Iterable[str | MessageSegmentFactory]",
-    ) -> "MessageFactory":
+    def __radd__(self: TMSF, other: Union[str, TMSF, Iterable[TMSF]]):
         return MessageFactory(other) + self
 
     async def send(self, *, at_sender=False, reply=False):
@@ -191,17 +160,7 @@ class MessageSegmentFactory(ABC):
         return await MessageFactory(self).send(at_sender=at_sender, reply=reply)
 
     async def send_to(self, target: PlatformTarget, bot: Optional[Bot] = None):
-        """主动发送消息，将消息发送到 target，如果不传入 bot 将自动选择 bot
-
-        此功能需要显式开启:
-
-        ```python
-        from nonebot_plugin_saa import enable_auto_select_bot
-        enable_auto_select_bot()
-        ```
-
-        参见：https://send-anything-anywhere.felinae98.cn/usage/send#发送时自动选择bot
-        """
+        "主动发送消息，将消息发送到 target，如果不传入 bot 将自动选择 bot（此功能需要显式开启）"
         return await MessageFactory(self).send_to(target, bot)
 
     async def finish(self, *, at_sender=False, reply=False, **kwargs) -> NoReturn:
@@ -235,38 +194,13 @@ class MessageSegmentFactory(ABC):
         await self.send(at_sender=at_sender, reply=reply, **kwargs)
         await matcher.reject_receive(key)
 
-    def copy(self) -> Self:
-        """深拷贝"""
-        return deepcopy(self)
 
-    def _asdict(self):
-        _dict = asdict(self)
-        return {k: v for k, v in _dict.items() if not k.startswith("_")}
-
-    def get(self, key: str, default: Any = None):
-        return self._asdict().get(key, default)
-
-    def keys(self):
-        return self._asdict().keys()
-
-    def values(self):
-        return self._asdict().values()
-
-    def items(self):
-        return self._asdict().items()
-
-    def join(
-        self, iterable: "Iterable[MessageSegmentFactory | MessageFactory]"
-    ) -> "MessageFactory":
-        return MessageFactory(self).join(iterable)
-
-
-class MessageFactory(List[MessageSegmentFactory]):
-    _text_factory: Callable[[str], MessageSegmentFactory]
+class MessageFactory(List[TMSF]):
+    _text_factory: Callable[[str], TMSF]
     _message_registry: Dict[SupportedAdapters, Type[Message]] = {}
 
     @classmethod
-    def register_text_ms(cls, factory: Callable[[str], MessageSegmentFactory]):
+    def register_text_ms(cls, factory: Callable[[str], TMSF]):
         cls._text_factory = factory
         return factory
 
@@ -295,10 +229,7 @@ class MessageFactory(List[MessageSegmentFactory]):
             return message_type(ms)
         raise AdapterNotInstalled(adapter_name)
 
-    def __init__(
-        self,
-        message: "str | MessageSegmentFactory | Iterable[str | MessageSegmentFactory] | None" = None,  # noqa: E501
-    ):
+    def __init__(self, message: Union[str, Iterable[TMSF], TMSF]):
         super().__init__()
 
         if message is None:
@@ -311,25 +242,16 @@ class MessageFactory(List[MessageSegmentFactory]):
         elif isinstance(message, Iterable):
             self.extend(message)
 
-    def __add__(
-        self: TMF,
-        other: "str | MessageSegmentFactory | Iterable[str | MessageSegmentFactory]",
-    ) -> TMF:
+    def __add__(self: TMF, other: Union[str, TMSF, Iterable[TMSF]]) -> TMF:
         result = self.copy()
         result += other
         return result
 
-    def __radd__(
-        self: TMF,
-        other: "str | MessageSegmentFactory | Iterable[str | MessageSegmentFactory]",
-    ) -> TMF:
+    def __radd__(self: TMF, other: Union[str, TMSF, Iterable[TMSF]]) -> TMF:
         result = self.__class__(other)
         return result + self
 
-    def __iadd__(
-        self: TMF,
-        other: "str | MessageSegmentFactory | Iterable[str | MessageSegmentFactory]",
-    ) -> TMF:
+    def __iadd__(self: TMF, other: Union[str, TMSF, Iterable[TMSF]]) -> TMF:
         if isinstance(other, str):
             self.append(self.get_text_factory()(other))
         elif isinstance(other, MessageSegmentFactory):
@@ -339,7 +261,7 @@ class MessageFactory(List[MessageSegmentFactory]):
 
         return self
 
-    def append(self: TMF, obj: Union[str, MessageSegmentFactory]) -> TMF:
+    def append(self: TMF, obj: Union[str, TMSF]) -> TMF:
         if isinstance(obj, MessageSegmentFactory):
             super().append(obj)
         elif isinstance(obj, str):
@@ -347,38 +269,14 @@ class MessageFactory(List[MessageSegmentFactory]):
 
         return self
 
-    def extend(
-        self: TMF, obj: Union[TMF, Iterable[Union[str, MessageSegmentFactory]]]
-    ) -> TMF:
+    def extend(self: TMF, obj: Union[TMF, Iterable[TMSF]]) -> TMF:
         for message_segment_factory in obj:
             self.append(message_segment_factory)
 
         return self
 
-    def copy(self) -> Self:
+    def copy(self: TMF) -> TMF:
         return deepcopy(self)
-
-    def join(self, iterable: "Iterable[MessageSegmentFactory | Self]") -> Self:
-        """将多个消息连接并将自身作为分割
-
-        参数:
-            iterable: 要连接的消息
-
-        返回:
-            连接后的消息
-        """
-        ret = self.__class__()
-        for index, msg in enumerate(iterable):
-            if index != 0:
-                ret.extend(self)
-            if isinstance(msg, MessageSegmentFactory):
-                ret.append(msg.copy())
-            else:
-                ret.extend(msg.copy())
-        return ret
-
-    def __str__(self) -> str:
-        return "".join(str(ms_factory) for ms_factory in self)
 
     async def send(self, *, at_sender=False, reply=False) -> "Receipt":
         "回复消息，仅能用在事件响应器中"
@@ -388,7 +286,7 @@ class MessageFactory(List[MessageSegmentFactory]):
         except LookupError as e:
             raise RuntimeError("send() 仅能在事件响应器中使用，主动发送消息请使用 send_to") from e
 
-        target = extract_target(event, bot)
+        target = extract_target(event)
         return await self._do_send(bot, target, event, at_sender, reply)
 
     async def send_to(
@@ -455,191 +353,6 @@ class MessageFactory(List[MessageSegmentFactory]):
             )  # pragma: no cover
         return await sender(bot, self, target, event, at_sender, reply)
 
-    @overload
-    def __getitem__(self, args: Type[MessageSegmentFactory]) -> Self:
-        """获取仅包含指定消息段类型的消息
-
-        参数:
-            args: 消息段类型
-
-        返回:
-            所有类型为 `args` 的消息段
-        """
-
-    @overload
-    def __getitem__(self, args: Tuple[Type[TMSF], int]) -> TMSF:
-        """索引指定类型的消息段
-
-        参数:
-            args: 消息段类型和索引
-
-        返回:
-            类型为 `args[0]` 的消息段第 `args[1]` 个
-        """
-
-    @overload
-    def __getitem__(self, args: Tuple[Type[TMSF], slice]) -> "MessageFactory":
-        """切片指定类型的消息段
-
-        参数:
-            args: 消息段类型和切片
-
-        返回:
-            类型为 `args[0]` 的消息段切片 `args[1]`
-        """
-
-    @overload
-    def __getitem__(self, args: int) -> MessageSegmentFactory:
-        """索引消息段
-
-        参数:
-            args: 索引
-
-        返回:
-            第 `args` 个消息段
-        """
-
-    @overload
-    def __getitem__(self, args: slice) -> "MessageFactory":
-        """切片消息段
-
-        参数:
-            args: 切片
-
-        返回:
-            消息切片 `args`
-        """
-
-    def __getitem__(
-        self,
-        args: Union[
-            Type[MessageSegmentFactory],
-            Tuple[Type[MessageSegmentFactory], int],
-            Tuple[Type[MessageSegmentFactory], slice],
-            int,
-            slice,
-        ],
-    ) -> "MessageSegmentFactory | MessageFactory":
-        arg1, arg2 = args if isinstance(args, tuple) else (args, None)
-        if isinstance(arg1, type) and arg2 is None:
-            return self.__class__(seg for seg in self if isinstance(seg, arg1))
-        elif isinstance(arg1, type) and isinstance(arg2, int):
-            return [seg for seg in self if isinstance(seg, arg1)][arg2]
-        elif isinstance(arg1, type) and isinstance(arg2, slice):
-            return self.__class__([seg for seg in self if isinstance(seg, arg1)][arg2])
-        elif isinstance(arg1, int) and arg2 is None:
-            return super().__getitem__(arg1)
-        elif isinstance(arg1, slice) and arg2 is None:
-            return self.__class__(super().__getitem__(arg1))
-        else:
-            raise ValueError("Incorrect arguments to slice")  # pragma: no cover
-
-    def __contains__(
-        self, value: Union[MessageSegmentFactory, Type[MessageSegmentFactory]]
-    ) -> bool:
-        """检查消息段是否存在
-
-        参数:
-            value: 消息段或消息段类型
-        返回:
-            消息内是否存在给定消息段或给定类型的消息段
-        """
-        if isinstance(value, type):
-            return bool(next((seg for seg in self if isinstance(seg, value)), None))
-        return super().__contains__(value)
-
-    def has(
-        self, value: Union[MessageSegmentFactory, Type[MessageSegmentFactory]]
-    ) -> bool:
-        """与 `__contains__` 相同"""
-        return value in self
-
-    def index(
-        self,
-        value: Union[MessageSegmentFactory, Type[MessageSegmentFactory]],
-        *args: SupportsIndex,
-    ) -> int:
-        """索引消息段
-
-        参数:
-            value: 消息段或者消息段类型
-            arg: start 与 end
-
-        返回:
-            索引 index
-
-        异常:
-            ValueError: 消息段不存在
-        """
-        if isinstance(value, type):
-            first_segment = next((seg for seg in self if isinstance(seg, value)), None)
-            if first_segment is None:
-                raise ValueError(f"Segment with type {value!r} is not in message")
-            return super().index(first_segment, *args)
-        return super().index(value, *args)
-
-    def get(self, type_: Type[MessageSegmentFactory], count: Optional[int] = None):
-        """获取指定类型的消息段
-
-        参数:
-            type_: 消息段类型
-            count: 获取个数
-
-        返回:
-            构建的新消息
-        """
-        return self[type_] if count is None else self[type_, :count]
-
-    def count(
-        self, value: Union[MessageSegmentFactory, Type[MessageSegmentFactory]]
-    ) -> int:
-        """计算指定消息段的个数
-
-        参数:
-            value: 消息段或消息段类型
-
-        返回:
-            个数
-        """
-        return len(self[value]) if isinstance(value, type) else super().count(value)
-
-    def only(
-        self, value: Union[MessageSegmentFactory, Type[MessageSegmentFactory]]
-    ) -> bool:
-        """检查消息中是否仅包含指定消息段
-
-        参数:
-            value: 指定消息段或消息段类型
-
-        返回:
-            是否仅包含指定消息段
-        """
-        if isinstance(value, type):
-            return all(isinstance(seg, value) for seg in self)
-        return all(seg == value for seg in self)
-
-    def include(self, *types: Type[MessageSegmentFactory]) -> Self:
-        """过滤消息
-
-        参数:
-            types: 包含的消息段类型
-
-        返回:
-            新构造的消息
-        """
-        return self.__class__(seg for seg in self if isinstance(seg, types))
-
-    def exclude(self, *types: Type[MessageSegmentFactory]) -> Self:
-        """过滤消息
-
-        参数:
-            types: 不包含的消息段类型
-
-        返回:
-            新构造的消息
-        """
-        return self.__class__(seg for seg in self if not isinstance(seg, types))
-
 
 AggregatedSender = Callable[
     [Bot, List[MessageFactory], PlatformTarget, Optional[Event]],
@@ -701,21 +414,11 @@ class AggregatedMessageFactory:
         except LookupError as e:
             raise RuntimeError("send() 仅能在事件响应器中使用，主动发送消息请使用 send_to") from e
 
-        target = extract_target(event, bot)
+        target = extract_target(event)
         await self._do_send(bot, target, event)
 
     async def send_to(self, target: PlatformTarget, bot: Optional[Bot] = None):
-        """主动发送消息，将消息发送到 target，如果不传入 bot 将自动选择 bot
-
-        此功能需要显式开启:
-
-        ```python
-        from nonebot_plugin_saa import enable_auto_select_bot
-        enable_auto_select_bot()
-        ```
-
-        参见：https://send-anything-anywhere.felinae98.cn/usage/send#发送时自动选择bot
-        """
+        "主动发送消息，将消息发送到 target，如果不传入 bot 将自动选择 bot（此功能需要显式开启）"
         if bot is None:
             bot = get_bot(target)
         await self._do_send(bot, target, None)

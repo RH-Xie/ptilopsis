@@ -6,23 +6,23 @@ from nonebot import get_driver
 from nonebot.adapters import Bot, Event
 from nonebot.drivers import Request, HTTPClientMixin
 
+from nonebot_plugin_saa.utils.types import AggregatedMessageFactory
+
 from ..types import Text, Image, Reply, Mention
-from ..auto_select_bot import register_list_targets
-from ..utils import SupportedAdapters, SupportedPlatform
-from ..abstract_factories import (
-    MessageFactory,
-    AggregatedMessageFactory,
-    register_ms_adapter,
-    assamble_message_factory,
-)
-from ..registries import (
+from ..utils import (
     Receipt,
-    MessageId,
     TargetQQGroup,
+    MessageFactory,
     PlatformTarget,
     TargetQQPrivate,
+    SupportedAdapters,
+    SupportedPlatform,
+    MessageSegmentFactory,
     register_sender,
+    register_ms_adapter,
+    register_list_targets,
     register_convert_to_arg,
+    assamble_message_factory,
     register_target_extractor,
 )
 
@@ -43,12 +43,6 @@ try:
     register_red = partial(register_ms_adapter, adapter)
 
     MessageFactory.register_adapter_message(SupportedAdapters.red, Message)
-
-    class RedMessageId(MessageId):
-        adapter_name: Literal[adapter] = adapter
-        message_seq: str
-        message_id: Optional[str] = None
-        sender_uin: Optional[str] = None
 
     @register_red(Text)
     def _text(t: Text) -> MessageSegment:
@@ -71,12 +65,7 @@ try:
 
     @register_red(Reply)
     async def _reply(r: Reply) -> MessageSegment:
-        assert isinstance(mid := r.data["message_id"], RedMessageId)
-        return MessageSegment.reply(
-            message_seq=mid.message_seq,
-            message_id=mid.message_id,
-            sender_uin=mid.sender_uin,
-        )
+        return MessageSegment.reply(r.data["message_id"])
 
     @register_target_extractor(PrivateMessageEvent)
     def _extract_private_msg_event(event: Event) -> TargetQQPrivate:
@@ -122,17 +111,10 @@ try:
         def raw(self) -> MessageModel:
             return self.message
 
-        def extract_message_id(self) -> RedMessageId:
-            return RedMessageId(
-                message_seq=self.message.msgSeq,
-                message_id=self.message.msgId,
-                sender_uin=self.message.senderUin,
-            )
-
     @register_sender(SupportedAdapters.red)
     async def send(
         bot,
-        msg: MessageFactory,
+        msg: MessageFactory[MessageSegmentFactory],
         target,
         event,
         at_sender: bool,
@@ -145,13 +127,7 @@ try:
             full_msg = assamble_message_factory(
                 msg,
                 Mention(event.get_user_id()),
-                Reply(
-                    RedMessageId(
-                        message_seq=event.msgSeq,
-                        message_id=event.msgId,
-                        sender_uin=event.senderUin,
-                    )
-                ),
+                Reply(event.msgSeq),
                 at_sender,
                 reply,
             )
@@ -205,20 +181,14 @@ try:
         assert isinstance(bot, BotRed)
 
         targets = []
-        try:
-            groups = await bot.get_groups()
-        except Exception:
-            groups = []
+        groups = await bot.get_groups()
         for group in groups:
             group_id = int(group.groupCode)
             target = TargetQQGroup(group_id=group_id)
             targets.append(target)
 
         # 获取好友列表
-        try:
-            users = await bot.get_friends()
-        except Exception:
-            users = []
+        users = await bot.get_friends()
         for user in users:
             user_id = int(user.uin)
             target = TargetQQPrivate(user_id=user_id)

@@ -1,4 +1,5 @@
-import inspect
+import json
+from abc import ABC
 from typing_extensions import Annotated
 from typing import (
     TYPE_CHECKING,
@@ -12,28 +13,36 @@ from typing import (
     ClassVar,
     Optional,
     Awaitable,
+    cast,
 )
 
 from pydantic import BaseModel
 from nonebot.params import Depends
 from nonebot.adapters import Bot, Event
 
-from .meta import SerializationMeta
-from ..utils import SupportedAdapters, SupportedPlatform, extract_adapter_type
+from .helpers import extract_adapter_type
+from .const import SupportedAdapters, SupportedPlatform
 
 if TYPE_CHECKING:
     from .receipt import Receipt
-    from ..abstract_factories import MessageFactory
+    from .types import MessageFactory
 
 
-class PlatformTarget(SerializationMeta):
-    _index_key = "platform_type"
-
+class PlatformTarget(BaseModel, ABC):
+    _deseriazer_map: ClassVar[
+        Dict[SupportedPlatform, Type["AllSupportedPlatformTarget"]]
+    ] = {}
     platform_type: SupportedPlatform
 
     class Config:
         frozen = True
         orm_mode = True
+
+    def __init_subclass__(cls) -> None:
+        assert isinstance(cls.__fields__["platform_type"].default, SupportedPlatform)
+        cls = cast(Type["AllSupportedPlatformTarget"], cls)
+        cls._deseriazer_map[cls.__fields__["platform_type"].default] = cls
+        return super().__init_subclass__()
 
     def arg_dict(self, bot: Bot):
         adapter_type = extract_adapter_type(bot)
@@ -43,9 +52,17 @@ class PlatformTarget(SerializationMeta):
             )
         return convert_to_arg_map[(self.platform_type, adapter_type)](self)
 
-
-class BotSpecifier(BaseModel):
-    bot_id: str
+    @classmethod
+    def deserialize(cls, source: Any) -> "AllSupportedPlatformTarget":
+        if isinstance(source, str):
+            raw_obj = json.loads(source)
+        else:
+            raw_obj = source
+            assert raw_obj.get("platform_type")
+        platform_type = cast(
+            SupportedPlatform, SupportedPlatform(raw_obj["platform_type"])
+        )
+        return cls._deseriazer_map[platform_type].parse_obj(raw_obj)
 
 
 class TargetQQGroup(PlatformTarget):
@@ -68,32 +85,6 @@ class TargetQQPrivate(PlatformTarget):
 
     platform_type: Literal[SupportedPlatform.qq_private] = SupportedPlatform.qq_private
     user_id: int
-
-
-class TargetQQGroupOpenId(PlatformTarget, BotSpecifier):
-    """QQ群（open_id）
-
-    参数
-        group_openid: 群 open_id
-    """
-
-    platform_type: Literal[
-        SupportedPlatform.qq_group_openid
-    ] = SupportedPlatform.qq_group_openid
-    group_openid: str
-
-
-class TargetQQPrivateOpenId(PlatformTarget, BotSpecifier):
-    """QQ私聊（open_id）
-
-    参数
-        user_openid: 用户 open_id
-    """
-
-    platform_type: Literal[
-        SupportedPlatform.qq_private_openid
-    ] = SupportedPlatform.qq_private_openid
-    user_openid: str
 
 
 class TargetQQGuildChannel(PlatformTarget):
@@ -223,42 +214,10 @@ class TargetFeishuGroup(PlatformTarget):
     chat_id: str
 
 
-class TargetDoDoChannel(PlatformTarget):
-    """DoDo Channel
-
-    参数
-        channel_id: 频道ID
-        dodo_source_id: 用户 ID(可选)
-    """
-
-    platform_type: Literal[
-        SupportedPlatform.dodo_channel
-    ] = SupportedPlatform.dodo_channel
-    channel_id: str
-    dodo_source_id: Optional[str] = None
-
-
-class TargetDoDoPrivate(PlatformTarget):
-    """DoDo Private
-
-    参数
-        dodo_source_id: 用户 ID
-        island_source_id: 群 ID
-    """
-
-    platform_type: Literal[
-        SupportedPlatform.dodo_private
-    ] = SupportedPlatform.dodo_private
-    island_source_id: str
-    dodo_source_id: str
-
-
 # this union type is for deserialize pydantic model with nested PlatformTarget
 AllSupportedPlatformTarget = Union[
     TargetQQGroup,
     TargetQQPrivate,
-    TargetQQGroupOpenId,
-    TargetQQPrivateOpenId,
     TargetQQGuildChannel,
     TargetQQGuildDirect,
     TargetKaiheilaPrivate,
@@ -284,40 +243,31 @@ def register_convert_to_arg(adapter: SupportedAdapters, platform: SupportedPlatf
 
 
 Extractor = Callable[[Event], PlatformTarget]
-ExtractorWithBotSpecifier = Callable[[Event, Bot], PlatformTarget]
-extractor_map: Dict[Type[Event], Union[Extractor, ExtractorWithBotSpecifier]] = {}
+extractor_map: Dict[Type[Event], Extractor] = {}
 
 
 def register_target_extractor(event: Type[Event]):
-    def wrapper(func: Union[Extractor, ExtractorWithBotSpecifier]):
+    def wrapper(func: Extractor):
         extractor_map[event] = func
         return func
 
     return wrapper
 
 
-def extract_target(event: Event, bot: Optional[Bot] = None) -> PlatformTarget:
+def extract_target(event: Event) -> PlatformTarget:
     "从事件中提取出发送目标，如果不能提取就抛出错误"
     for event_type in event.__class__.mro():
         if event_type in extractor_map:
             if not issubclass(event_type, Event):
                 break
-            if len(inspect.signature(extractor_map[event_type]).parameters.keys()) == 2:
-                # extractor params: event, bot
-                if bot is None:
-                    raise RuntimeError(
-                        f"event {event.__class__} need bot parameter to extract target",
-                    )
-                return extractor_map[event_type](event, bot)  # type: ignore
-            else:
-                return extractor_map[event_type](event)  # type: ignore
+            return extractor_map[event_type](event)
     raise RuntimeError(f"event {event.__class__} not supported")
 
 
-def get_target(event: Event, bot: Optional[Bot] = None) -> Optional[PlatformTarget]:
+def get_target(event: Event) -> Optional[PlatformTarget]:
     "从事件中提取出发送目标，如果不能提取就返回 None"
     try:
-        return extract_target(event, bot)
+        return extract_target(event)
     except RuntimeError:
         pass
 
@@ -371,6 +321,6 @@ class QQGuildDMSManager:
             raise RuntimeError(
                 f"qqguild dms method for {adapter} not registered",
             )  # pragma: no cover
-        guild_id = await qqguild_dms(target, bot)  # type: ignore
+        guild_id = await qqguild_dms(target, bot)
         cls._cache[target] = guild_id
         return guild_id
