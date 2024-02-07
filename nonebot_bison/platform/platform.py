@@ -207,12 +207,15 @@ class Platform(metaclass=PlatformABCMeta, base=True):
         self, new_posts: list[RawPost], sub_unit: SubUnit
     ) -> list[tuple[PlatformTarget, list[Post]]]:
         res: list[tuple[PlatformTarget, list[Post]]] = []
+        logger.info("【dispatch_user_post】进入 new_posts长度:" + len(new_posts))
+        logger.info(new_posts)
         for user, cats, required_tags in sub_unit.user_sub_infos:
             user_raw_post = await self.filter_user_custom(new_posts, cats, required_tags)
             user_post: list[Post] = []
             for raw_post in user_raw_post:
                 user_post.append(await self.do_parse(raw_post))
             res.append((user, user_post))
+        logger.info("【dispatch_user_post】输出res" + len(res))
         return res
 
     @abstractmethod
