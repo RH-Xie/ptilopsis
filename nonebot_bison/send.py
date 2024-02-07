@@ -42,8 +42,8 @@ async def do_send_msgs():
                 QUEUE.appendleft((send_target, msg_factory, retry_time - 1))
             else:
                 msg_str = str(msg_factory)
-                if len(msg_str) > 50:
-                    msg_str = msg_str[:50] + "..."
+                if len(msg_str) > 1000:
+                    msg_str = msg_str[:1000] + "..."
                 logger.warning(f"send msg err {e} {msg_str}")
         else:
             # sleeping after popping may also cause re-execution error like above mentioned
