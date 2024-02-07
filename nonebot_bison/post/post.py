@@ -3,6 +3,7 @@ from dataclasses import field, dataclass
 
 from PIL import Image
 from nonebot.log import logger
+from nonebot.adapters.red import MessageSegment
 import nonebot_plugin_saa as saa
 from nonebot_plugin_saa.utils import MessageSegmentFactory
 
@@ -20,6 +21,12 @@ class _Post(BasePost):
 
     _message: list[MessageSegmentFactory] | None = None
     _pic_message: list[MessageSegmentFactory] | None = None
+    
+    def check_keywords(text, keywords):
+        for keyword in keywords:
+            if keyword in text:
+                return True
+        return False
 
     async def _pic_url_to_image(self, data: str | bytes) -> Image.Image:
         pic_buffer = BytesIO()
@@ -103,7 +110,7 @@ class _Post(BasePost):
             msg_segments: list[MessageSegmentFactory] = []
             text = ""
             if self.text:
-                text += "{}".format(self.text if len(self.text) < 500 else self.text[:500] + "...")
+                text += "{}".format(self.text if len(self.text) < 800 else self.text[:800] + "...（详见链接）")
             if text:
                 text += "\n"
             text += f"来源: {self.target_type}"
@@ -114,6 +121,13 @@ class _Post(BasePost):
             msg_segments.append(saa.Text(text))
             for pic in self.pics:
                 msg_segments.append(saa.Image(pic))
+            # 关键词触发at_all
+            keywords = ["闪断更新", "停机维护公告"]
+            if(self.check_keywords(text, keywords)):
+                try: 
+                    msg_segments.insert(0, MessageSegment.at_all())
+                except: 
+                    logger.error('@全体成员: 消息拼接出错')
             self._message = msg_segments
         return self._message
 
