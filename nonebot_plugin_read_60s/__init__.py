@@ -22,7 +22,7 @@ def remove_upprintable_chars(s):
 get_60s = on_command("今日快讯", block=True, priority=5)
 @get_60s.handle()
 async def hf(bot: Bot, ev: MessageEvent):
-    msg = await suijitu();
+    msg = await suijitu(ev.get_user_id());
     await bot.send(ev, message=Message(msg))
 
 async def read60s():
@@ -35,7 +35,7 @@ async def read60s():
 
 
 
-async def suijitu():
+async def suijitu(user_id = ''):
     async with AsyncClient() as client:
         try:
             url = "https://api.2xb.cn/zaob"  # 备用网址
@@ -45,7 +45,9 @@ async def suijitu():
             retdata = json.loads(resp)
             imageUrl = retdata['imageUrl']
             img = await client.get(imageUrl, timeout=8000)
-            return [MessageSegment.text(f"今日60S读世界已送达\n"), MessageSegment.image(img.content)]
+            msgBody = [MessageSegment.text(f"今日60S读世界已送达\n"), MessageSegment.image(img.content)]
+            if(user_id != ''): msgBody.insert(0, MessageSegment.at(user_id));
+            return msgBody
             
         except:
             return [MessageSegment.text("今日60S获取失败")]
