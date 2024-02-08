@@ -111,8 +111,6 @@ class Scheduler:
                 logger.warning("API request record: " + record)
             err.args += (records,)
             raise
-        logger.info("[排错]to_send")
-        logger.info(to_send)
         if not to_send:
             return
 
