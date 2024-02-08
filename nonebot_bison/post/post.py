@@ -125,10 +125,13 @@ class _Post(BasePost):
             keywords = ["闪断更新", "停机维护公告"]
             if(self.check_keywords(text, keywords)):
                 try: 
-                    msg_segments.insert(0, MessageSegment.at_all())
+                    msg_segments.insert(0, saa.Mention(""))
                 except: 
                     logger.error('@全体成员: 消息拼接出错')
             self._message = msg_segments
+            logger.info('拼接完成')
+            logger.info(self._message)
+            
         return self._message
 
     async def generate_pic_messages(self) -> list[MessageSegmentFactory]:
