@@ -22,7 +22,7 @@ class _Post(BasePost):
     _message: list[MessageSegmentFactory] | None = None
     _pic_message: list[MessageSegmentFactory] | None = None
     
-    def check_keywords(text, keywords):
+    def check_keywords(self, text, keywords):
         for keyword in keywords:
             if keyword in text:
                 return True
