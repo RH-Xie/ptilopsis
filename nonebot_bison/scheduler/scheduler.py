@@ -111,6 +111,7 @@ class Scheduler:
                 logger.warning("API request record: " + record)
             err.args += (records,)
             raise
+        logger.info("[抓取]新消息长度：" + str(len(to_send)))
         if not to_send:
             return
 
