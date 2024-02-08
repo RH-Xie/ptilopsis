@@ -327,18 +327,22 @@ class NewMessage(MessageProcess, abstract=True):
         sub_unit: SubUnit,
     ) -> list[tuple[PlatformTarget, list[Post]]]:
         new_posts = await self.filter_common_with_diff(sub_unit.sub_target, post_list)
-        if not new_posts:
-            return []
-        else:
-            for post in new_posts:
-                logger.info(
-                    "fetch new post from {} {}: {}".format(
-                        self.platform_name,
-                        sub_unit.sub_target if self.has_target else "-",
-                        self.get_id(post),
+        try: 
+            if not new_posts:
+                return []
+            else:
+                for post in new_posts:
+                    logger.info(
+                        "fetch new post from {} {}: {}".format(
+                            self.platform_name,
+                            sub_unit.sub_target if self.has_target else "-",
+                            self.get_id(post),
+                        )
                     )
-                )
-        res = await self.dispatch_user_post(new_posts, sub_unit)
+            res = await self.dispatch_user_post(new_posts, sub_unit)
+        except Exception as err:
+            logger.error("报错了")
+            logger.error(err)
         self.parse_cache = {}
         return res
 
