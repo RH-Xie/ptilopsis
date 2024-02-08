@@ -125,7 +125,7 @@ class _Post(BasePost):
             keywords = ["闪断更新", "停机维护公告"]
             if(self.check_keywords(text, keywords)):
                 try: 
-                    msg_segments.insert(0, saa.Mention(""))
+                    msg_segments.insert(0, saa.Mention("全体成员"))
                 except: 
                     logger.error('@全体成员: 消息拼接出错')
             self._message = msg_segments
