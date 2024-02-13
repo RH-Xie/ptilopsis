@@ -119,7 +119,8 @@ def read_token_from_db(db:sq.Connection, qq_id:str):
     except Exception as e:
         logger.error(e)
         write_log2file('error', f"{e},获取已储存的token失败")
-        raise RuntimeError("获取已储存的token失败")
+        raise RuntimeError("获取已储存的token失败，\n\
+            请先使用 方舟抽卡帮助 查看帮助或 使用网页绑定（开发中）：https://rhxie.top/openapi/ark-record")
     assert res, '请先使用 方舟抽卡帮助 查看帮助或使用 方舟抽卡token + 你的token 进行设置'
     return res
 

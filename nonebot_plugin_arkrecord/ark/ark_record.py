@@ -125,7 +125,8 @@ async def ark_help_handle(bot: Bot, event: Event):
                 \n帮助请参看以下图片。图片中涉及的网址为:\
                 \n官网：https://ak.hypergryph.com/\
                 \n官服token获取地址：https://web-api.hypergryph.com/account/info/hg\
-                \nB服token获取地址：https://web-api.hypergryph.com/account/info/ak-b\n'
+                \nB服token获取地址：https://web-api.hypergryph.com/account/info/ak-b\
+                \n网页绑定（开发中）：https://rhxie.top/openapi/ark-record'
     )
     try:
         message_img = MessageSegment.image(Path(help_img_path)),
