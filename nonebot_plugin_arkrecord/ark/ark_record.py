@@ -1,7 +1,7 @@
 
 from pathlib import Path
 from nonebot.log import logger
-from nonebot.plugin import on_keyword
+from nonebot.plugin import on_command
 from nonebot.adapters.red.event import Event
 from nonebot.adapters.red import Bot, PrivateMessageEvent, GroupMessageEvent, Message, MessageSegment
 from nonebot.typing import T_State
@@ -121,7 +121,7 @@ ark_help_event = on_keyword(['方舟抽卡帮助','方舟寻访帮助'], priorit
 async def ark_help_handle(bot: Bot, event: Event):
     # logger.info(image_file_path)
     message_CQ = Message(
-        f'\n欢迎使用明日方舟寻访分析插件！\
+        f'欢迎使用明日方舟寻访分析插件！\
                 \n帮助请参看以下图片。图片中涉及的网址为:\
                 \n官网：https://ak.hypergryph.com/\
                 \n官服token获取地址：https://web-api.hypergryph.com/account/info/hg\
