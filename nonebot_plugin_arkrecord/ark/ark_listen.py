@@ -19,6 +19,14 @@ def do_task():
         logger.error(err_msg)
         return json.dumps({"code": 400, "msg": err_msg, "data": 0})
 
+@app.route('/record/test', methods=['GET', 'POST'])
+def do_task():
+    try: 
+      return json.dumps({"code": 200, "msg": "OK", "data": 1})
+    except Exception as e:
+      return json.dumps({"code": 400, "msg": str(e), "data": 0})
+
+
 def run_flask():
   logger.info("【开放API】启动中...")
   app.run("0.0.0.0", port=10088)
