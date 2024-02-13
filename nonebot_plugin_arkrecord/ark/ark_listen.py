@@ -20,7 +20,7 @@ def do_task():
         return json.dumps({"code": 400, "msg": err_msg, "data": 0})
 
 @app.route('/record/test', methods=['GET', 'POST'])
-def do_task():
+def do_test():
     try: 
       return json.dumps({"code": 200, "msg": "OK", "data": 1})
     except Exception as e:
