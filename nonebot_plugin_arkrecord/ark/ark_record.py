@@ -1,7 +1,7 @@
 
 from pathlib import Path
 from nonebot.log import logger
-from nonebot.plugin import on_command
+from nonebot import on_command
 from nonebot.adapters.red.event import Event
 from nonebot.adapters.red import Bot, PrivateMessageEvent, GroupMessageEvent, Message, MessageSegment
 from nonebot.typing import T_State
