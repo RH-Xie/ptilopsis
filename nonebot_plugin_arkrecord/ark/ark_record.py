@@ -30,7 +30,7 @@ def handle_bind_token(qq: str, token_str: str):
         logger.error(str(e))
         return str(e), 500
 
-user_token_event = on_command(['方舟抽卡token', '方舟寻访token'], priority = 80)
+user_token_event = on_command("方舟抽卡token", aliases='方舟寻访token', priority = 80)
 @user_token_event.handle()
 async def user_token_handle(bot: Bot, event: Event):
     qq_id = event.get_user_id()
@@ -43,7 +43,7 @@ async def user_token_handle(bot: Bot, event: Event):
         await user_analysis_event.finish(Message(str(e)))    
     await user_token_event.finish(Message("成功保存token"))
 
-user_export_event = on_command(['方舟抽卡导出', '方舟寻访导出'], priority = 80)
+user_export_event = on_command('方舟抽卡导出', aliases='方舟寻访导出', priority = 80)
 @user_export_event.handle()
 async def user_export_handle(bot: Bot, event: Event):
     qq_id = event.get_user_id()
@@ -65,7 +65,7 @@ async def user_export_handle(bot: Bot, event: Event):
 from urllib.parse import urlencode
 import requests as req
 
-import_record_event = on_command(['群文件测试'], priority = 80)
+import_record_event = on_command('群文件测试', priority = 80)
 @import_record_event.handle()
 async def import_record_handle(bot: Bot, event: GroupMessageEvent, state: T_State):
 
@@ -95,7 +95,7 @@ async def import_record_handle(bot: Bot, event: GroupMessageEvent, state: T_Stat
     # })
     # logger.info(download_fpath)
 
-user_analysis_event = on_command(['方舟抽卡分析','方舟寻访分析'], priority = 80)
+user_analysis_event = on_command('方舟抽卡分析', aliases='方舟寻访分析', priority = 80)
 @user_analysis_event.handle()
 async def user_analysis_handle(bot: Bot, event: Event):
     qq_id = event.get_user_id()    
@@ -116,7 +116,7 @@ async def user_analysis_handle(bot: Bot, event: Event):
     await user_analysis_event.finish(message_img)
 
 
-ark_help_event = on_command(['方舟抽卡帮助','方舟寻访帮助'], priority = 50)
+ark_help_event = on_command('方舟抽卡帮助', aliases='方舟寻访帮助', priority = 50)
 @ark_help_event.handle()
 async def ark_help_handle(bot: Bot, event: Event):
     # logger.info(image_file_path)
