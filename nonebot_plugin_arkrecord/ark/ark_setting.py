@@ -1,6 +1,7 @@
 import sqlite3 as sq, os
 import shutil
-import json
+
+import json
 import nonebot
 from nonebot.log import logger
 from .ark_utils import *
@@ -41,7 +42,7 @@ def init_db(user_db_path):
 #sqlite文件
 user_db_path = get_user_config_path('arkgacha_record16.db')
 init_db(user_db_path)
-arkgacha_db = sq.connect(user_db_path)
+arkgacha_db = sq.connect(user_db_path, check_same_thread=False)
 
 
 #干员头像目录

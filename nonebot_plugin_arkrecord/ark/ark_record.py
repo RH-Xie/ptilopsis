@@ -21,6 +21,15 @@ def parse_user_token(raw_str:str) -> str:
     except:
         return raw_str.strip()
 
+def handle_bind_token(qq: str, token_str: str):
+    try:
+        user_token = parse_user_token(token_str)
+        write_token2db(arkgacha_db, qq, user_token)
+        return "绑定成功！", 200
+    except Exception as e:
+        logger.error(str(e))
+        return str(e), 500
+
 user_token_event = on_keyword(['方舟抽卡token', '方舟寻访token'], priority = 80)
 @user_token_event.handle()
 async def user_token_handle(bot: Bot, event: Event):
@@ -46,11 +55,12 @@ async def user_export_handle(bot: Bot, event: Event):
     except Exception as e:
         logger.error(e)
         await user_analysis_event.finish(Message(f'{str(e)}'))
-    await bot.upload_group_file(
-        group_id = event.group_id,
-        file =  response,
-        name = response.split(os.sep)[-1],
-    )  
+    # await bot.upload_group_file(
+    #     group_id = event.group_id,
+    #     file =  response,
+    #     name = response.split(os.sep)[-1],
+    # )  
+    await bot.upload(response)
 
 from urllib.parse import urlencode
 import requests as req

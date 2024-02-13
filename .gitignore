@@ -5,6 +5,7 @@
 !nonebot*/
 !YetAnotherPicSearch/
 !haruka_bot/
+!flask/
 # but none of pictures, fonts or RECORD files are allowed
 /**/*.png
 /**/*.jpg
