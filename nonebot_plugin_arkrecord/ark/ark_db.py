@@ -111,16 +111,18 @@ def read_token_from_db(db:sq.Connection, qq_id:str):
     """
     try:
         cursor = db.cursor()
+        logger.info("【找token】")
         sql = f"select * from {qq_user_table} \
             where {qq_id_field} = \'{qq_id}\';"
+        logger.info("sql: " + sql)
         cursor.execute(sql)
         #user_name token user_id channel
+        logger.info("res: " + str(res))
         res = cursor.fetchone()[1:]
     except Exception as e:
         logger.error(e)
         write_log2file('error', f"{e},获取已储存的token失败")
-        raise RuntimeError("获取已储存的token失败，\n\
-            请先使用 方舟抽卡帮助 查看帮助或 使用网页绑定（开发中）：https://rhxie.top/openapi/ark-record")
+        raise RuntimeError("获取已储存的token失败，请使用 方舟抽卡帮助 查看帮助或 使用网页绑定（开发中）：https://rhxie.top/openapi/ark-record")
     assert res, '请先使用 方舟抽卡帮助 查看帮助或使用 方舟抽卡token + 你的token 进行设置'
     return res
 
