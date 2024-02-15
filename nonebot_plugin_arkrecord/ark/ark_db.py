@@ -117,8 +117,8 @@ def read_token_from_db(db:sq.Connection, qq_id:str):
         logger.info("sql: " + sql)
         cursor.execute(sql)
         #user_name token user_id channel
-        logger.info("res: " + str(res))
         res = cursor.fetchone()[1:]
+        logger.info("res: " + str(res))
     except Exception as e:
         logger.error(e)
         write_log2file('error', f"{e},获取已储存的token失败")
