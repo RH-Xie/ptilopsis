@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from nonebot.log import logger
 from nonebot.typing import T_State
 from nonebot import get_driver, on_command
-from nonebot.adapters.red import Bot, PrivateMessageEvent
+from nonebot.adapters.red import Bot, GroupMessageEvent
 
 from .api import router as api_router
 from ..plugin_config import plugin_config
@@ -63,9 +63,10 @@ def register_get_token_handler():
     get_token = on_command("后台管理", priority=5, aliases={"管理后台"})
 
     @get_token.handle()
-    async def send_token(bot: "Bot", event: PrivateMessageEvent, state: T_State):
+    async def send_token(bot: "Bot", event: GroupMessageEvent, state: T_State):
         token = tm.get_user_token((event.get_user_id(), event.sender.nickname))
-        await get_token.finish(f"请访问: {plugin_config.bison_outer_url}auth/{token}")
+        await bot.send(event, f"请访问: {plugin_config.bison_outer_url}auth/{token}")
+        # await get_token.finish(f"请访问: {plugin_config.bison_outer_url}auth/{token}")
 
     get_token.__help__name__ = "获取后台管理地址"  # type: ignore
     get_token.__help__info__ = "获取管理bot后台的地址，该地址会在一段时间过后过期，请不要泄漏该地址"  # type: ignore
