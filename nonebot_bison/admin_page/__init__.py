@@ -3,7 +3,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from nonebot.log import logger
-from nonebot.rule import to_me
 from nonebot.typing import T_State
 from nonebot import get_driver, on_command
 from nonebot.adapters.red import Bot, PrivateMessageEvent
@@ -61,7 +60,7 @@ def init_fastapi():
 
 
 def register_get_token_handler():
-    get_token = on_command("后台管理", rule=to_me(), priority=5, aliases={"管理后台"})
+    get_token = on_command("后台管理", priority=5, aliases={"管理后台"})
 
     @get_token.handle()
     async def send_token(bot: "Bot", event: PrivateMessageEvent, state: T_State):
