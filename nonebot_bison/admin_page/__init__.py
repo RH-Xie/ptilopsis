@@ -64,7 +64,7 @@ def register_get_token_handler():
 
     @get_token.handle()
     async def send_token(bot: "Bot", event: GroupMessageEvent, state: T_State):
-        token = tm.get_user_token((event.get_user_id(), event.sender.nickname))
+        token = tm.get_user_token((event.get_user_id(), event.sendMemberName))
         await bot.send(event, f"请访问: {plugin_config.bison_outer_url}auth/{token}")
         # await get_token.finish(f"请访问: {plugin_config.bison_outer_url}auth/{token}")
 
