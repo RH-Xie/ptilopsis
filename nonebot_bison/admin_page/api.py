@@ -11,7 +11,7 @@ from ..types import WeightConfig
 from ..apis import check_sub_target
 from .jwt import load_jwt, pack_jwt
 from ..types import Target as T_Target
-from ..utils.get_bot import get_groups
+from ..utils.get_bot import get_groups_red
 from ..platform import platform_manager
 from .token_manager import token_manager
 from ..config.db_config import SubscribeDupException
@@ -68,7 +68,7 @@ async def get_global_conf() -> GlobalConf:
 
 async def get_admin_groups(qq: int):
     res = []
-    for group in await get_groups():
+    for group in await get_groups_red():
         group_id = group["group_id"]
         bot = get_bot(TargetQQGroup(group_id=group_id))
         if not bot:
@@ -93,7 +93,7 @@ async def auth(token: str) -> TokenResp:
                         "id": info["group_id"],
                         "name": info["group_name"],
                     }
-                    for info in await get_groups()
+                    for info in await get_groups_red()
                 ],
             }
             ret_obj = TokenResp(
