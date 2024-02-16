@@ -42,7 +42,7 @@ del_sub_matcher = on_command(
 del_sub_matcher.handle()(set_target_user_info)
 do_del_sub(del_sub_matcher)
 
-group_manage_matcher = on_command("群管理rhxie", permission=SUPERUSER, priority=4, block=True)
+group_manage_matcher = on_command("群管理rhxie", priority=4, block=True)
 
 group_handle_cancel = gen_handle_cancel(group_manage_matcher, "已取消")
 
