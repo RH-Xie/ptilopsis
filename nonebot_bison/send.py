@@ -18,9 +18,9 @@ MESSGE_SEND_INTERVAL = 1.5
 async def _do_send(send_target: PlatformTarget, msg: Sendable):
     try:
         await msg.send_to(send_target)
-    except ActionFailed:  # TODO: catch exception of other adapters
-        await refresh_bots()
-        logger.warning("send msg failed, refresh bots")
+    # except ActionFailed:  # TODO: catch exception of other adapters
+    #     await refresh_bots()
+    #     logger.warning("send msg failed, refresh bots")
     except Exception as e:
         logger.warning("【发送错误，未被适配】" + str(e))
 
