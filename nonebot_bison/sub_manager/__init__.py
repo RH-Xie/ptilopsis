@@ -49,7 +49,8 @@ group_handle_cancel = gen_handle_cancel(group_manage_matcher, "已取消")
 
 @group_manage_matcher.handle()
 async def send_group_list(bot: Bot, event: PrivateMessageEvent, state: T_State):
-    groups = await bot.call_api("get_group_list")
+    groups = await bot.get_groups()
+    # groups = await bot.call_api("get_group_list")
     res_text = "请选择需要管理的群：\n"
     group_number_idx = {}
     for idx, group in enumerate(groups, 1):
