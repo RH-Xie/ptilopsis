@@ -60,7 +60,7 @@ def init_fastapi():
 
 
 def register_get_token_handler():
-    get_token = on_command("后台管理", priority=5, aliases={"管理后台"})
+    get_token = on_command("后台管理WebUI", priority=5, aliases={"管理后台WebUI"})
 
     @get_token.handle()
     async def send_token(bot: "Bot", event: GroupMessageEvent, state: T_State):
