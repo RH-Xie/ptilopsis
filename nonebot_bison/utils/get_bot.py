@@ -37,7 +37,7 @@ async def get_groups_red() -> list[dict[str, Any]]:
     # TODO
     all_groups: dict[int, dict[str, Any]] = {}
     for bot in get_bots():
-        groups = await RedBot.get_groups()
+        groups = await RedBot.get_groups(bot)
         all_groups.update({group["group_id"]: group for group in groups if group["group_id"] not in all_groups})
 
     return list(all_groups.values())
