@@ -25,14 +25,6 @@ Bot_NICKNAME = list(nonebot.get_driver().config.nickname)
 
 Bot_NICKNAME = Bot_NICKNAME[0] if Bot_NICKNAME else "色图bot"
 
-# 处理图片为二进制
-def process_image(image):
-    if image:
-        buf = BytesIO()
-        image.save(buf, format='png')
-        return buf.getvalue()
-
-
 hello = on_command("色图", aliases = {"涩图"}, rule = to_me(), priority = 50, block = True)
 
 @hello.handle()
@@ -118,7 +110,7 @@ async def _(bot: Bot, event: MessageEvent):
             task_list.append(task)
         image_list = await asyncio.gather(*task_list)
 
-    image_list = [process_image(image) for image in image_list if image]
+    image_list = [image for image in image_list if image]
 
     await bot.send(event, '已获取到图片')
     if not image_list:
@@ -127,9 +119,9 @@ async def _(bot: Bot, event: MessageEvent):
     if N <= 3:
         image = Message()
         for i in range(N):
-            # await bot.send(event, MessageSegment.image(file = image_list[i]))
-            image +=  MessageSegment.image(file = image_list[i])
-        await bot.send(event, Message(msg) + image)
+            await bot.send(event, MessageSegment.image(file = image_list[i]))
+            # image +=  MessageSegment.image(file = image_list[i])
+        # await bot.send(event, Message(msg) + image)
     else:
         msg_list =[]
         for i in range(N):
