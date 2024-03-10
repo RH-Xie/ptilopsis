@@ -15,6 +15,7 @@ import re
 import httpx
 import asyncio
 import unicodedata
+from io import BytesIO
 
 from .api.MirlKoi import MirlKoi,is_MirlKoi_tag
 from .api.Anosu import Anosu
