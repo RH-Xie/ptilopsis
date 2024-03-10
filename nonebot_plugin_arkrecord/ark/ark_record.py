@@ -98,7 +98,7 @@ async def import_record_handle(bot: Bot, event: GroupMessageEvent, state: T_Stat
 user_analysis_event = on_command('方舟抽卡分析', aliases={'方舟寻访分析'}, priority = 80)
 @user_analysis_event.handle()
 async def user_analysis_handle(bot: Bot, event: GroupMessageEvent):
-    qq_id = event.fromUid
+    qq_id = event.get_user_id()
     try:
         user_info = read_token_from_db(arkgacha_db, qq_id)
         max_record_count = parse_message(event.get_message())
