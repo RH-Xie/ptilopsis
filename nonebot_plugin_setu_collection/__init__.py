@@ -73,7 +73,7 @@ async def _(bot: Bot, event: MessageEvent):
 
     if isinstance(event,GroupMessageEvent):
         if R18:
-            await setu.finish("涩涩是禁止事项！！")
+            await bot.send(event, "涩涩是禁止事项！！")
         else:
             api = "Lolicon API"
             setufunc = Lolicon
@@ -112,13 +112,13 @@ async def _(bot: Bot, event: MessageEvent):
     image_list = [image for image in image_list if image]
 
     if not image_list:
-        await setu.finish(msg + "获取图片失败。", at_sender = True)
+        await bot.send(event, msg + "获取图片失败。")
     N = len(image_list)
     if N <= 3:
         image = Message()
         for i in range(N):
             image +=  MessageSegment.image(file = image_list[i])
-        await setu.finish(Message(msg) + image, at_sender = True)
+        await bot.send(event, Message(msg) + image)
     else:
         msg_list =[]
         for i in range(N):
@@ -165,7 +165,7 @@ set_api = on_command("设置api", aliases = {"切换api","指定api"}, priority 
         "2.Lolicon API"
         )
     )
-async def _(event: PrivateMessageEvent, api: Message = Arg()):
+async def _(bot: Bot, event: PrivateMessageEvent, api: Message = Arg()):
     api = str(api)
     user_id = str(event.user_id)
     def save():
@@ -174,11 +174,11 @@ async def _(event: PrivateMessageEvent, api: Message = Arg()):
     if api == "1":
         customer_api[user_id] = "Jitsu/MirlKoi API"
         save()
-        await set_api.finish("api已切换为Jitsu/MirlKoi API")
+        await bot.send(event, "api已切换为Jitsu/MirlKoi API")
     elif api == "2":
         customer_api[user_id] = "Lolicon API"
         save()
-        await set_api.finish("api已切换为Lolicon API")
+        await bot.send(event, "api已切换为Lolicon API")
     else:
-        await set_api.finish("api设置失败")
+        await bot.send(event, "api设置失败")
 
