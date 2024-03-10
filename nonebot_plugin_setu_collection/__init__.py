@@ -111,8 +111,6 @@ async def _(bot: Bot, event: MessageEvent):
         image_list = await asyncio.gather(*task_list)
 
     image_list = [image for image in image_list if image]
-
-    await bot.send(event, '已获取到图片')
     if not image_list:
         await bot.send(event, msg + "获取图片失败。")
     N = len(image_list)
@@ -130,15 +128,15 @@ async def _(bot: Bot, event: MessageEvent):
                     "type": "node",
                     "data": {
                         "name": Bot_NICKNAME,
-                        "uin": event.self_id,
+                        "uin": event.senderUin,
                         "content": MessageSegment.image(file = image_list[i])
                         }
                     }
                 )
         if isinstance(event,GroupMessageEvent):
-            await bot.send_group_forward_msg(group_id = event.group_id, messages = msg_list)
+            await bot.send_group_forward(group = event.group_id, nodes= msg_list)
         else:
-            await bot.send_private_forward_msg(user_id = event.user_id, messages = msg_list)
+            await bot.send_fake_forward(target = event.get_user_id(), nodes= msg_list)
 
 import os
 from pathlib import Path
