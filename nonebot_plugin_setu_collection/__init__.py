@@ -6,8 +6,9 @@ from nonebot.adapters.red import (
     GroupMessageEvent,
     PrivateMessageEvent,
     MessageSegment,
-    Message
+    Message,
     )
+from nonebot.adapters.red.message import ForwardNode
 from nonebot.params import CommandArg,Arg
 
 import nonebot
@@ -15,7 +16,7 @@ import re
 import httpx
 import asyncio
 import unicodedata
-from io import BytesIO
+from typing import List
 
 from .api.MirlKoi import MirlKoi,is_MirlKoi_tag
 from .api.Anosu import Anosu
@@ -99,9 +100,9 @@ async def _(bot: Bot, event: MessageEvent):
     msg,url_list = await setufunc(N,Tag,R18)
     msg = msg.replace("Bot_NICKNAME",Bot_NICKNAME)
 
-    if len(url_list) >3:
-        msg = msg[:-1]
-        await setu.send(msg, at_sender = True)
+    # if len(url_list) >3:
+    #     msg = msg[:-1]
+    #     await setu.send(msg, at_sender = True)
 
     async with httpx.AsyncClient() as client:
         task_list = []
@@ -115,24 +116,28 @@ async def _(bot: Bot, event: MessageEvent):
         await bot.send(event, msg + "获取图片失败。")
     N = len(image_list)
     if N <= 3:
-        image = Message()
         for i in range(N):
             await bot.send(event, MessageSegment.image(file = image_list[i]))
             # image +=  MessageSegment.image(file = image_list[i])
         # await bot.send(event, Message(msg) + image)
     else:
-        msg_list =[]
+        msg_list: List[ForwardNode] =[]
         for i in range(N):
             msg_list.append(
-                {
-                    "type": "node",
-                    "data": {
-                        "name": Bot_NICKNAME,
-                        "uin": event.senderUin,
-                        "content": MessageSegment.image(file = image_list[i])
-                        }
-                    }
+                # {
+                #     "type": "node",
+                #     "data": {
+                #         "name": Bot_NICKNAME,
+                #         "uin": event.senderUin,
+                #         "content": MessageSegment.image(file = image_list[i])
+                #     }
+                # }
+                ForwardNode(
+                    uin=event.senderUin,
+                    name="0x0000001f",
+                    message=MessageSegment.image(file = image_list[i])
                 )
+            )
         if isinstance(event,GroupMessageEvent):
             await bot.send_group_forward(group = event.group_id, nodes= msg_list)
         else:
