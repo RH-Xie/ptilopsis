@@ -1,6 +1,6 @@
 from nonebot.plugin.on import on_regex,on_command
 from nonebot.rule import to_me
-from nonebot.adapters.onebot.v11 import (
+from nonebot.adapters.red import (
     Bot,
     MessageEvent,
     GroupMessageEvent,
