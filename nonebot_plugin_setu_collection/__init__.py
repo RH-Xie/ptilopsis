@@ -64,7 +64,8 @@ async def _(bot: Bot, event: MessageEvent):
         except (TypeError, ValueError):
             N = 0
     if(N > 5):
-        bot.send(event, "单次最多只能5张哦")
+        await bot.send(event, "单次最多只能5张哦")
+        return;
     Tag = re.sub(r'^我?要|^来|.*[张份]', '', cmd)
     Tag = Tag [:-2]if (Tag.endswith("涩图") or Tag.endswith("色图")) else Tag
 
