@@ -9,9 +9,9 @@ from nonebot import logger
 
 async def Anosu(N:int = 1, Tag:str = "", R18:int = 0):
     msg = ""
-    if 1 <= N <= 10:
+    if 1 <= N <= 5:
         msg += f"Bot_NICKNAME为你准备了{N}张随机{'r18'if R18 else ''}{Tag}色图。"
-    elif N > 10:
+    elif N > 5:
         N = 1
         if R18:
             msg += f"Bot_NICKNAME为你的身体着想，为你准备了一张随机r18{Tag}色图。"

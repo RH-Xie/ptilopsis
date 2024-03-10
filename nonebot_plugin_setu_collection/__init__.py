@@ -63,7 +63,8 @@ async def _(bot: Bot, event: MessageEvent):
             N = int(unicodedata.numeric(N))
         except (TypeError, ValueError):
             N = 0
-
+    if(N > 5):
+        bot.send(event, "单次最多只能5张哦")
     Tag = re.sub(r'^我?要|^来|.*[张份]', '', cmd)
     Tag = Tag [:-2]if (Tag.endswith("涩图") or Tag.endswith("色图")) else Tag
 
@@ -115,33 +116,33 @@ async def _(bot: Bot, event: MessageEvent):
     if not image_list:
         await bot.send(event, msg + "获取图片失败。")
     N = len(image_list)
-    if N <= 3:
-        for i in range(N):
-            await bot.send(event, MessageSegment.image(file = image_list[i]))
+    # if N <= 3:
+    for i in range(N):
+        await bot.send(event, MessageSegment.image(file = image_list[i]))
             # image +=  MessageSegment.image(file = image_list[i])
         # await bot.send(event, Message(msg) + image)
-    else:
-        msg_list: List[ForwardNode] =[]
-        for i in range(N):
-            msg_list.append(
-                # {
-                #     "type": "node",
-                #     "data": {
-                #         "name": Bot_NICKNAME,
-                #         "uin": event.senderUin,
-                #         "content": MessageSegment.image(file = image_list[i])
-                #     }
-                # }
-                ForwardNode(
-                    uin=event.senderUin,
-                    name="0x0000001f",
-                    message=MessageSegment.image(file = image_list[i])
-                )
-            )
-        if isinstance(event,GroupMessageEvent):
-            await bot.send_group_forward(group = event.group_id, nodes= msg_list)
-        else:
-            await bot.send_fake_forward(target = event.get_user_id(), nodes= msg_list)
+    # else:
+        # msg_list: List[ForwardNode] =[]
+        # for i in range(N):
+        #     msg_list.append(
+        #         # {
+        #         #     "type": "node",
+        #         #     "data": {
+        #         #         "name": Bot_NICKNAME,
+        #         #         "uin": event.senderUin,
+        #         #         "content": MessageSegment.image(file = image_list[i])
+        #         #     }
+        #         # }
+        #         ForwardNode(
+        #             uin=event.senderUin,
+        #             name="0x0000001f",
+        #             message=MessageSegment.image(file = image_list[i])
+        #         )
+        #     )
+        # if isinstance(event,GroupMessageEvent):
+        #     await bot.send_group_forward(group = event.group_id, nodes= msg_list)
+        # else:
+        #     await bot.send_fake_forward(target = event.get_user_id(), nodes= msg_list)
 
 import os
 from pathlib import Path

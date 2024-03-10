@@ -45,9 +45,9 @@ async def MirlKoi(N:int = 1, Tag:str = "", R18:int = 0):
     Tag = Tag if Tag else "iw233"
     tag = tag_dict[Tag]
     msg = ""
-    if 1 <= N <= 10:
+    if 1 <= N <= 5:
         msg += f"Bot_NICKNAME为你准备了{N}张{tag}。"
-    elif N > 10:
+    elif N > 5:
         N = 1
         msg += f"Bot_NICKNAME被禁止单次发送超过10张色图...但是，Bot_NICKNAME为你准备了一张{tag}。"
     else:
